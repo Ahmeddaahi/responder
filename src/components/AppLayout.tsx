@@ -230,7 +230,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 <div className="p-1.5 bg-primary rounded-lg text-primary-foreground">
                   <Zap className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-bold">Upgrade to Pro</span>
+                <span className="text-xs font-bold">Upgrade to {plan === 'free' ? 'Pro' : 'Business'}</span>
               </div>
               <p className="text-[10px] text-muted-foreground mb-3 leading-tight">
                 Unlock manual replies, unlimited custom fields, and priority AI.
@@ -280,7 +280,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                       {getDisplayName()}
                     </span>
                     <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-                      {isAdmin ? 'Admin' : 'Member'}
+                      {isAdmin ? 'Admin' : (plan === 'starter' ? 'Pro' : plan === 'enterprise' ? 'Business' : plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Member')}
                     </span>
                   </div>
                 </button>

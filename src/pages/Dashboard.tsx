@@ -498,7 +498,9 @@ const Dashboard = () => {
                       <AlertCircle className="w-4 h-4 text-yellow-600" />
                     </div>
                     <p className="text-sm sm:text-base text-muted-foreground">
-                      Your upgrade to <span className="font-semibold text-yellow-700 capitalize">{pendingPayments[0].requested_plan}</span> plan is being verified by our team.
+                      Your upgrade to <span className="font-semibold text-yellow-700 capitalize">
+                        {pendingPayments[0].requested_plan === 'starter' ? 'Pro' : pendingPayments[0].requested_plan === 'enterprise' ? 'Business' : pendingPayments[0].requested_plan}
+                      </span> plan is being verified by our team.
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       This usually takes up to <span className="font-semibold">15 minutes</span>. You will be notified once verified.
@@ -568,7 +570,9 @@ const Dashboard = () => {
                     <Check className="w-5 h-5 text-orange-600" />
                   </Badge>
                 </div>
-                <Badge variant="outline" className={`text-[10px] font-normal border-orange-200 capitalize`}>{subscription?.plan}</Badge>
+                <Badge variant="outline" className={`text-[10px] font-normal border-orange-200 capitalize`}>
+                  {subscription?.plan === 'starter' ? 'Pro' : subscription?.plan === 'enterprise' ? 'Business' : subscription?.plan}
+                </Badge>
               </div>
               <div className="space-y-4">
                 <div>

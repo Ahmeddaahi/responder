@@ -156,7 +156,7 @@ const PaymentVerification = () => {
             try {
                 // Get user email from payment request or query profiles
                 let userEmail = paymentRequests.find(p => p.id === paymentId)?.profiles?.email;
-                
+
                 if (!userEmail) {
                     // Fallback: query profiles table
                     const { data: profile } = await supabase
@@ -171,7 +171,7 @@ const PaymentVerification = () => {
                     console.log('📧 Sending plan verification email to:', userEmail);
                     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
                     const functionUrl = `${supabaseUrl}/functions/v1/send-plan-verification-email`;
-                    
+
                     const response = await fetch(functionUrl, {
                         method: 'POST',
                         headers: {
@@ -292,22 +292,22 @@ const PaymentVerification = () => {
     const getSignedUrl = async (publicUrl: string): Promise<string | null> => {
         try {
             console.log('Attempting to create signed URL from:', publicUrl);
-            
+
             // Extract file path from public URL
             const url = new URL(publicUrl);
             console.log('Parsed URL pathname:', url.pathname);
-            
+
             const pathParts = url.pathname.split('/');
             console.log('Path parts:', pathParts);
-            
+
             const bucketIndex = pathParts.indexOf('payment_proofs');
             console.log('Bucket index:', bucketIndex);
-            
+
             if (bucketIndex === -1) {
                 console.error('Could not find payment_proofs in URL path');
                 return null;
             }
-            
+
             const filePath = pathParts.slice(bucketIndex + 1).join('/');
             console.log('Extracted file path:', filePath);
 
@@ -336,7 +336,7 @@ const PaymentVerification = () => {
 
     const handleImageError = async () => {
         if (!selectedReceipt) return;
-        
+
         // Cloudflare URLs should work directly, no need for signed URLs
         if (isCloudflareUrl(selectedReceipt)) {
             console.log('Cloudflare URL failed to load');
@@ -344,7 +344,7 @@ const PaymentVerification = () => {
             setImageLoading(false);
             return;
         }
-        
+
         // For Supabase URLs, try signed URL as fallback
         if (isSupabaseUrl(selectedReceipt) && currentImageUrl === selectedReceipt) {
             console.log('Supabase public URL failed, trying signed URL...');
@@ -356,7 +356,7 @@ const PaymentVerification = () => {
                 return;
             }
         }
-        
+
         // If both methods failed, show error
         setImageError(true);
         setImageLoading(false);
@@ -374,13 +374,13 @@ const PaymentVerification = () => {
         if (!selectedReceipt) return;
         setImageError(false);
         setImageLoading(true);
-        
+
         // Cloudflare URLs should work directly, just retry the same URL
         if (isCloudflareUrl(selectedReceipt)) {
             setCurrentImageUrl(selectedReceipt);
             return;
         }
-        
+
         // For Supabase URLs, try signed URL
         if (isSupabaseUrl(selectedReceipt)) {
             const signedUrl = await getSignedUrl(selectedReceipt);
@@ -475,10 +475,14 @@ const PaymentVerification = () => {
                                                 </TableCell>
                                                 <TableCell className="text-xs sm:text-sm">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="capitalize text-muted-foreground text-xs">{payment.current_plan}</span>
+                                                        <span className="capitalize text-muted-foreground text-xs">
+                                                            {payment.current_plan === 'starter' ? 'Pro' : payment.current_plan === 'enterprise' ? 'Business' : payment.current_plan}
+                                                        </span>
                                                         <span className="flex items-center gap-1">
                                                             <span className="text-muted-foreground">→</span>
-                                                            <span className="capitalize font-semibold text-accent">{payment.requested_plan}</span>
+                                                            <span className="capitalize font-semibold text-accent">
+                                                                {payment.requested_plan === 'starter' ? 'Pro' : payment.requested_plan === 'enterprise' ? 'Business' : payment.requested_plan}
+                                                            </span>
                                                         </span>
                                                     </div>
                                                 </TableCell>
@@ -608,7 +612,7 @@ const PaymentVerification = () => {
                                     </div>
                                 </div>
                             )}
-                            
+
                             {imageError ? (
                                 <div className="flex flex-col items-center justify-center gap-4 p-8 bg-muted/30 rounded-lg border-2 border-dashed border-border">
                                     <AlertCircle className="w-12 h-12 text-destructive" />
