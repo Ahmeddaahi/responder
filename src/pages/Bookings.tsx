@@ -1,0 +1,711 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+    Calendar,
+    Phone,
+    Mail,
+    User,
+    Filter,
+    Search,
+    Clock,
+    MapPin,
+    Users,
+    Bed,
+    Utensils,
+    Stethoscope,
+    ChevronDown,
+    ChevronUp,
+    MessageSquare,
+    Download,
+    LayoutGrid,
+    List as ListIcon,
+} from "lucide-react";
+import AppLayout from "@/components/AppLayout";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { CardSkeleton, PageHeaderSkeleton } from "@/components/ui/custom-skeletons";
+
+interface Booking {
+    id: string;
+    customer_name: string | null;
+    customer_id: string;
+    customer_phone: string | null;
+    customer_email: string | null;
+    booking_type: string;
+    status: string;
+    platform: string;
+    check_in_date: string | null;
+    check_out_date: string | null;
+    room_type: string | null;
+    number_of_guests: number | null;
+    reservation_date: string | null;
+    reservation_time: string | null;
+    number_of_people: number | null;
+    table_preference: string | null;
+    appointment_date: string | null;
+    appointment_time: string | null;
+    department: string | null;
+    doctor_name: string | null;
+    reason_for_visit: string | null;
+    notes: string | null;
+    business_name: string | null;
+    custom_data: Record<string, any> | null;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+const Bookings = () => {
+    const [user, setUser] = useState<SupabaseUser | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterType, setFilterType] = useState<string>("all");
+    const [filterStatus, setFilterStatus] = useState<string>("all");
+    const [dateFilter, setDateFilter] = useState("all");
+    const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+    const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
+    const navigate = useNavigate();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            setUser(session?.user ?? null);
+            if (!session) {
+                navigate("/auth");
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [navigate]);
+
+    useEffect(() => {
+        if (user) {
+            loadBookings();
+        }
+    }, [user]);
+
+    useEffect(() => {
+        filterBookings();
+    }, [bookings, searchQuery, filterType, filterStatus]);
+
+    const checkUser = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        if (!session) {
+            navigate("/auth");
+        }
+    };
+
+    const loadBookings = async () => {
+        if (!user) return;
+
+        try {
+            const { data, error } = await supabase
+                .from("bookings")
+                .select("*")
+                .eq("user_id", user.id)
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                throw error;
+            }
+
+            setBookings(data || []);
+        } catch (error: any) {
+            console.error("Error loading bookings:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load bookings",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const filterBookings = () => {
+        let filtered = [...bookings];
+
+        // Filter by type
+        if (filterType !== "all") {
+            filtered = filtered.filter((b) => b.booking_type === filterType);
+        }
+
+        // Filter by status
+        if (filterStatus !== "all") {
+            filtered = filtered.filter((b) => b.status === filterStatus);
+        }
+
+        // Filter by search query
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (b) =>
+                    b.customer_name?.toLowerCase().includes(query) ||
+                    b.customer_phone?.toLowerCase().includes(query) ||
+                    b.customer_email?.toLowerCase().includes(query) ||
+                    b.customer_id?.toLowerCase().includes(query)
+            );
+        }
+
+        // Filter by date
+        const now = new Date();
+        if (dateFilter !== "all") {
+            filtered = filtered.filter((b) => {
+                const bookingDate = new Date(b.created_at || "");
+                switch (dateFilter) {
+                    case "today":
+                        return bookingDate.toDateString() === now.toDateString();
+                    case "week":
+                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        return bookingDate >= weekAgo;
+                    case "month":
+                        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        return bookingDate >= monthAgo;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        setFilteredBookings(filtered);
+    };
+
+    const downloadCSV = () => {
+        const headers = [
+            "ID",
+            "Customer Name",
+            "Phone",
+            "Email",
+            "Type",
+            "Status",
+            "Platform",
+            "Date",
+        ];
+
+        const csvContent = [
+            headers.join(","),
+            ...filteredBookings.map((b) =>
+                [
+                    b.id,
+                    b.customer_name || "",
+                    b.customer_phone || "",
+                    b.customer_email || "",
+                    b.booking_type,
+                    b.status,
+                    b.platform,
+                    b.created_at,
+                ]
+                    .map((field) => `"${field}"`)
+                    .join(",")
+            ),
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `bookings_${new Date().toISOString().split("T")[0]}.csv`);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
+    const getBookingTypeLabel = (type: string) => {
+        switch (type) {
+            case "hotel":
+                return "Hotel";
+            case "restaurant":
+                return "Restaurant";
+            case "hospital":
+                return "Hospital / Clinic";
+            case "custom":
+                return "Custom";
+            default:
+                return type;
+        }
+    };
+
+    const getBookingTypeIcon = (type: string) => {
+        switch (type) {
+            case "hotel":
+                return <Bed className="w-4 h-4" />;
+            case "restaurant":
+                return <Utensils className="w-4 h-4" />;
+            case "hospital":
+                return <Stethoscope className="w-4 h-4" />;
+            default:
+                return <Calendar className="w-4 h-4" />;
+        }
+    };
+
+    const toggleExpanded = (bookingId: string) => {
+        setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
+    };
+
+    if (loading) {
+        return (
+            <AppLayout>
+                <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                    <PageHeaderSkeleton />
+                    <CardSkeleton />
+                </div>
+            </AppLayout>
+        );
+    }
+
+    return (
+        <AppLayout>
+            <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                {/* Header */}
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bookings</h1>
+                    <p className="text-muted-foreground">
+                        View and manage all customer bookings collected by your AI assistant
+                    </p>
+                </div>
+
+                {/* Filters and Search */}
+                <Card className="p-4 sm:p-6 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Search */}
+                        <div className="lg:col-span-2">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search by name, phone or email..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-9 h-10"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Type Filter */}
+                        <div className="w-full">
+                            <Select value={filterType} onValueChange={setFilterType}>
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="All Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    <SelectItem value="hotel">Hotel</SelectItem>
+                                    <SelectItem value="restaurant">Restaurant</SelectItem>
+                                    <SelectItem value="hospital">Hospital / Clinic</SelectItem>
+                                    <SelectItem value="custom">Custom</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Date Filter */}
+                        <div className="w-full">
+                            <Select value={dateFilter} onValueChange={setDateFilter}>
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Date Range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Time</SelectItem>
+                                    <SelectItem value="today">Today</SelectItem>
+                                    <SelectItem value="week">This Week</SelectItem>
+                                    <SelectItem value="month">This Month</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row justify-between items-center mt-6 pt-6 border-t border-border/50 gap-4">
+                        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-xl self-start sm:self-auto">
+                            <Button
+                                variant={viewMode === "grid" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setViewMode("grid")}
+                                className={`h-8 px-3 rounded-lg flex items-center gap-2 ${viewMode === "grid" ? "shadow-sm" : ""}`}
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                                <span className="text-xs font-medium">Grid</span>
+                            </Button>
+                            <Button
+                                variant={viewMode === "table" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setViewMode("table")}
+                                className={`h-8 px-3 rounded-lg flex items-center gap-2 ${viewMode === "table" ? "shadow-sm" : ""}`}
+                            >
+                                <ListIcon className="w-4 h-4" />
+                                <span className="text-xs font-medium">Table</span>
+                            </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                {filteredBookings.length} Result{filteredBookings.length !== 1 ? 's' : ''}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={downloadCSV}
+                                className="h-9 px-4 font-bold border-2 hover:bg-muted/50 transition-all"
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                Export CSV
+                            </Button>
+                        </div>
+                    </div>
+
+
+                </Card>
+
+                {/* Bookings List */}
+                {filteredBookings.length === 0 ? (
+                    <Card className="p-8 sm:p-12 text-center">
+                        <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <h3 className="text-xl font-semibold mb-2">No bookings found</h3>
+                        <p className="text-muted-foreground mb-6">
+                            {bookings.length === 0
+                                ? "No bookings have been recorded yet. Once customers start making bookings through your AI assistant, they will appear here."
+                                : "No bookings match your current filters. Try adjusting your search criteria."}
+                        </p>
+                        {bookings.length === 0 && (
+                            <Button onClick={() => navigate("/knowledge")}>
+                                Set Up Booking Flow
+                            </Button>
+                        )}
+                    </Card>
+                ) : (
+                    <div className="space-y-4">
+                        {filteredBookings.map((booking) => (
+                            <Card key={booking.id} className="overflow-hidden">
+                                {/* Booking Header */}
+                                <div
+                                    className="p-4 sm:p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                                    onClick={() => toggleExpanded(booking.id)}
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                {getBookingTypeIcon(booking.booking_type)}
+                                                <h3 className="text-lg font-semibold truncate">
+                                                    {booking.customer_name || "Unknown Customer"}
+                                                </h3>
+                                                {booking.business_name && (
+                                                    <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary">
+                                                        {booking.business_name}
+                                                    </Badge>
+                                                )}
+                                                <Badge
+                                                    variant={
+                                                        booking.status === "confirmed"
+                                                            ? "default"
+                                                            : booking.status === "cancelled"
+                                                                ? "secondary"
+                                                                : "outline"
+                                                    }
+                                                    className="capitalize"
+                                                >
+                                                    {booking.status}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                                {booking.customer_phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone className="w-4 h-4" />
+                                                        <span>{booking.customer_phone}</span>
+                                                    </div>
+                                                )}
+                                                {booking.customer_email && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail className="w-4 h-4" />
+                                                        <span className="truncate">{booking.customer_email}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline" className="capitalize">
+                                                        {getBookingTypeLabel(booking.booking_type)}
+                                                    </Badge>
+                                                    <Badge variant="outline" className="capitalize">
+                                                        {booking.platform}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            {expandedBooking === booking.id ? (
+                                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                                            ) : (
+                                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Expanded Details */}
+                                {expandedBooking === booking.id && (
+                                    <div className="border-t border-border p-4 sm:p-6 bg-muted/20">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Customer Information */}
+                                            <div>
+                                                <h4 className="font-semibold mb-3 flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <User className="w-4 h-4" />
+                                                        Customer Information
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-7 text-xs"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/messages?chat=${booking.customer_id}`);
+                                                        }}
+                                                    >
+                                                        <MessageSquare className="w-3 h-3 mr-2" />
+                                                        View Messages
+                                                    </Button>
+                                                </h4>
+                                                <div className="space-y-2 text-sm">
+                                                    <div>
+                                                        <span className="text-muted-foreground">Name:</span>{" "}
+                                                        <span className="font-medium">
+                                                            {booking.customer_name || "Not provided"}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-muted-foreground">Phone:</span>{" "}
+                                                        <span className="font-medium">
+                                                            {booking.customer_phone || "Not provided"}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-muted-foreground">Email:</span>{" "}
+                                                        <span className="font-medium">
+                                                            {booking.customer_email || "Not provided"}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-muted-foreground">Customer ID:</span>{" "}
+                                                        <span className="font-mono text-xs">
+                                                            {booking.customer_id}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Booking Details */}
+                                            <div>
+                                                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4" />
+                                                    Booking Details
+                                                </h4>
+                                                <div className="space-y-2 text-sm">
+                                                    {/* Hotel Details */}
+                                                    {booking.booking_type === "hotel" && (
+                                                        <>
+                                                            {booking.check_in_date && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Check-in:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {new Date(booking.check_in_date).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.check_out_date && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Check-out:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {new Date(booking.check_out_date).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.room_type && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Room Type:</span>{" "}
+                                                                    <span className="font-medium capitalize">
+                                                                        {booking.room_type}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.number_of_guests && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Guests:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.number_of_guests}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {/* Restaurant Details */}
+                                                    {booking.booking_type === "restaurant" && (
+                                                        <>
+                                                            {booking.reservation_date && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Date:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {new Date(booking.reservation_date).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.reservation_time && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Time:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.reservation_time}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.number_of_people && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">People:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.number_of_people}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.table_preference && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Table:</span>{" "}
+                                                                    <span className="font-medium capitalize">
+                                                                        {booking.table_preference}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {/* Hospital Details */}
+                                                    {booking.booking_type === "hospital" && (
+                                                        <>
+                                                            {booking.appointment_date && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Date:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {new Date(booking.appointment_date).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.appointment_time && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Time:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.appointment_time}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.department && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Department:</span>{" "}
+                                                                    <span className="font-medium capitalize">
+                                                                        {booking.department}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.doctor_name && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Doctor:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.doctor_name}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {booking.reason_for_visit && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Reason:</span>{" "}
+                                                                    <span className="font-medium">
+                                                                        {booking.reason_for_visit}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {/* Custom Data / Fields */}
+                                                    {booking.custom_data && Object.keys(booking.custom_data).length > 0 && (
+                                                        <>
+                                                            {Object.entries(booking.custom_data)
+                                                                .filter(([key]) => {
+                                                                    const standardFields = [
+                                                                        'customer_name', 'customer_phone', 'customer_email',
+                                                                        'check_in_date', 'check_out_date', 'number_of_guests',
+                                                                        'room_type', 'status', 'reservation_date', 'reservation_time',
+                                                                        'number_of_people', 'table_preference', 'appointment_date',
+                                                                        'appointment_time', 'department', 'doctor_name', 'reason_for_visit'
+                                                                    ];
+                                                                    const normalizedKey = key.toLowerCase().replace(/[\s_-]/g, '_');
+                                                                    return !standardFields.includes(normalizedKey);
+                                                                })
+                                                                .map(([key, value]) => (
+                                                                    <div key={key}>
+                                                                        <span className="text-muted-foreground capitalize">
+                                                                            {key.replace(/_/g, " ")}:
+                                                                        </span>{" "}
+                                                                        <span className="font-medium">
+                                                                            {typeof value === 'boolean'
+                                                                                ? (value ? 'Yes' : 'No')
+                                                                                : String(value)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                        </>
+                                                    )}
+
+                                                    {booking.notes && (
+                                                        <div>
+                                                            <span className="text-muted-foreground">Notes:</span>{" "}
+                                                            <span className="font-medium">{booking.notes}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Timestamps */}
+                                        <div className="mt-6 pt-4 border-t border-border flex flex-wrap gap-4 text-xs text-muted-foreground">
+                                            {booking.created_at && (
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    <span>
+                                                        Created: {new Date(booking.created_at).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {booking.updated_at && (
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    <span>
+                                                        Updated: {new Date(booking.updated_at).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </AppLayout>
+    );
+};
+
+export default Bookings;

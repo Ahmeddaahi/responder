@@ -1,0 +1,15 @@
+Welcome!
+
+Hello!
+
+Thank you for signing up! We're excited to have you on board. To complete your registration and activate your account, please verify your email address by clicking the link below.
+
+Verify your email: {{ .ConfirmationURL }}
+
+This verification link will expire in 24 hours. If you didn't create an account, please ignore this email.
+
+Need help? Contact our support team if you have any questions.
+
+Best regards,
+Reply Ready Bot Team
+

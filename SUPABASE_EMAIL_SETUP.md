@@ -1,0 +1,201 @@
+# Supabase Email Configuration with Brevo
+
+This guide will help you configure Supabase to send signup verification emails using Brevo SMTP.
+
+## 🔍 Problem
+
+You're getting a **422 error** when users try to sign up because:
+- Supabase has email confirmation enabled
+- But SMTP is not configured in Supabase
+- So verification emails cannot be sent
+
+## ✅ Solution: Configure Brevo SMTP in Supabase
+
+### Step 1: Get Brevo SMTP Credentials
+
+1. Go to your **Brevo Dashboard**: [https://app.brevo.com/](https://app.brevo.com/)
+2. Navigate to **Settings** → **SMTP & API** → **SMTP** tab
+3. You'll see your SMTP credentials:
+   - **SMTP Server**: `smtp-relay.brevo.com`
+   - **Port**: `587` (TLS) or `465` (SSL)
+   - **Login**: Your Brevo account email (the one you signed up with)
+   - **Password**: Your Brevo SMTP password (NOT your account password)
+
+   ⚠️ **If you don't see an SMTP password:**
+   - Click **"Generate SMTP Password"** or **"Create SMTP Key"**
+   - Give it a name (e.g., "Supabase SMTP")
+   - Copy the generated password immediately
+
+### Step 2: Configure Supabase SMTP Settings
+
+1. Go to your **Supabase Dashboard**: [https://supabase.com/dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Settings** → **Auth** → **SMTP Settings**
+4. Enable **"Enable Custom SMTP"**
+5. Fill in the SMTP configuration:
+
+   ```
+   Sender email: your-verified-email@yourdomain.com
+   Sender name: Reply Ready Bot (or your preferred name)
+   Host: smtp-relay.brevo.com
+   Port: 587
+   Username: your-brevo-email@example.com (your Brevo account email)
+   Password: your-brevo-smtp-password (the SMTP password from Step 1)
+   ```
+
+6. Click **"Save"**
+
+### Step 3: Verify SMTP Configuration
+
+1. In Supabase Dashboard, go to **Settings** → **Auth** → **SMTP Settings**
+2. Click **"Send Test Email"**
+3. Enter your email address
+4. Click **"Send"**
+5. Check your inbox - you should receive a test email
+
+### Step 4: Configure Email Templates (Optional)
+
+1. Go to **Settings** → **Auth** → **Email Templates**
+2. Customize the templates if needed:
+   - **Confirm signup** - Email sent when user signs up
+   - **Magic Link** - Email sent for passwordless login
+   - **Change Email Address** - Email sent when changing email
+   - **Reset Password** - Email sent for password reset (if using Supabase's built-in)
+
+3. You can customize:
+   - Subject line
+   - Email body (HTML)
+   - Redirect URL
+
+### Step 5: Test Signup Flow
+
+1. Go to your website's signup page
+2. Enter a new email address
+3. Submit the form
+4. Check your email inbox
+5. Click the verification link
+6. You should be redirected back to your app and logged in
+
+---
+
+## 🔧 Alternative: Disable Email Confirmation (Not Recommended)
+
+If you want to disable email confirmation temporarily (less secure):
+
+1. Go to **Supabase Dashboard** → **Settings** → **Auth**
+2. Scroll to **"Email Auth"** section
+3. Toggle **"Enable email confirmations"** to **OFF**
+4. Click **"Save"**
+
+⚠️ **Warning**: This allows users to sign up without verifying their email. Only use this for development/testing.
+
+---
+
+## 🐛 Troubleshooting
+
+### Still getting 422 error?
+
+1. **Check SMTP Settings:**
+   - Verify all fields are filled correctly
+   - Make sure there are no extra spaces
+   - Try port `465` with SSL if `587` doesn't work
+
+2. **Check Brevo Sender:**
+   - Go to Brevo Dashboard → Settings → Senders
+   - Ensure your sender email is **verified** (green checkmark)
+   - If not verified, check your email and click the verification link
+
+3. **Check Brevo Limits:**
+   - Free tier: 300 emails/day
+   - Check Brevo Dashboard → Statistics
+   - Ensure you haven't exceeded the limit
+
+4. **Check Supabase Logs:**
+   - Go to Supabase Dashboard → Logs → Auth Logs
+   - Look for SMTP-related errors
+   - Common errors:
+     - `535 Authentication failed` → Wrong SMTP password
+     - `550 Sender not verified` → Sender email not verified in Brevo
+     - `Connection timeout` → Wrong SMTP host or port
+
+5. **Test SMTP Connection:**
+   - In Supabase Dashboard → Settings → Auth → SMTP Settings
+   - Click **"Send Test Email"**
+   - If it fails, check the error message
+
+### Email not received?
+
+1. **Check Spam Folder:**
+   - Brevo emails sometimes go to spam initially
+   - Mark as "Not Spam" to improve deliverability
+
+2. **Check Brevo Dashboard:**
+   - Go to Brevo Dashboard → Statistics → Emails
+   - Check if the email was sent
+   - Check delivery status
+
+3. **Verify Email Address:**
+   - Make sure the email address you're using is valid
+   - Try a different email address
+
+### SMTP Password Not Working?
+
+1. **Generate New SMTP Password:**
+   - Go to Brevo Dashboard → Settings → SMTP & API
+   - Delete the old SMTP key
+   - Generate a new one
+   - Update it in Supabase
+
+2. **Check Password Format:**
+   - SMTP password is different from your Brevo account password
+   - It's a long random string generated by Brevo
+   - Make sure you copied it completely
+
+---
+
+## 📋 Quick Checklist
+
+- [ ] Brevo account created
+- [ ] Brevo sender email verified
+- [ ] Brevo SMTP password generated
+- [ ] Supabase SMTP enabled
+- [ ] SMTP credentials entered correctly in Supabase
+- [ ] Test email sent successfully
+- [ ] Signup flow tested
+- [ ] Verification email received
+- [ ] User can verify and log in
+
+---
+
+## 🔐 Security Notes
+
+1. **SMTP Password Security:**
+   - Never share your SMTP password
+   - Don't commit it to version control
+   - Rotate it periodically
+
+2. **Email Verification:**
+   - Always enable email verification in production
+   - This prevents fake accounts and spam
+
+3. **Sender Email:**
+   - Use a dedicated email for your app (e.g., `noreply@yourdomain.com`)
+   - Don't use your personal email
+
+---
+
+## 🎉 Success!
+
+Once configured, your signup flow will work:
+1. User signs up → Supabase sends verification email via Brevo
+2. User clicks link in email → Email verified
+3. User is automatically logged in → Redirected to your app
+
+---
+
+## 📚 Additional Resources
+
+- **Supabase Auth Docs**: [https://supabase.com/docs/guides/auth](https://supabase.com/docs/guides/auth)
+- **Brevo SMTP Docs**: [https://developers.brevo.com/docs/send-emails-with-smtp-relay](https://developers.brevo.com/docs/send-emails-with-smtp-relay)
+- **Supabase Email Templates**: [https://supabase.com/docs/guides/auth/auth-email-templates](https://supabase.com/docs/guides/auth/auth-email-templates)
+
