@@ -471,14 +471,14 @@ const Knowledge = () => {
                     <button
                       type="button"
                       onClick={() => handleSelectBusinessType("hotel")}
-                      disabled={plan !== 'business' && configsCount >= 1 && !existingTypes.includes("hotel")}
+                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("hotel")}
                       className="disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
                       <Card className="p-4 hover:shadow-lg transition-shadow border-border cursor-pointer text-left h-full group-disabled:pointer-events-none">
                         <Hotel className="w-8 h-8 text-primary mb-3" />
                         <h4 className="font-semibold">Hotel</h4>
                         <p className="text-xs text-muted-foreground mt-1">Stays and room bookings</p>
-                        {plan !== 'business' && configsCount >= 1 && !existingTypes.includes("hotel") && (
+                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("hotel") && (
                           <div className="mt-2 text-[10px] text-amber-600 font-medium whitespace-nowrap">Business Plan Required</div>
                         )}
                       </Card>
@@ -486,14 +486,14 @@ const Knowledge = () => {
                     <button
                       type="button"
                       onClick={() => handleSelectBusinessType("restaurant")}
-                      disabled={plan !== 'business' && configsCount >= 1 && !existingTypes.includes("restaurant")}
+                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("restaurant")}
                       className="disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
                       <Card className="p-4 hover:shadow-lg transition-shadow border-border cursor-pointer text-left h-full group-disabled:pointer-events-none">
                         <UtensilsCrossed className="w-8 h-8 text-accent mb-3" />
                         <h4 className="font-semibold">Restaurant</h4>
                         <p className="text-xs text-muted-foreground mt-1">Table reservations</p>
-                        {plan !== 'business' && configsCount >= 1 && !existingTypes.includes("restaurant") && (
+                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("restaurant") && (
                           <div className="mt-2 text-[10px] text-amber-600 font-medium whitespace-nowrap">Business Plan Required</div>
                         )}
                       </Card>
@@ -501,14 +501,14 @@ const Knowledge = () => {
                     <button
                       type="button"
                       onClick={() => handleSelectBusinessType("hospital")}
-                      disabled={plan !== 'business' && configsCount >= 1 && !existingTypes.includes("hospital")}
+                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("hospital")}
                       className="disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
                       <Card className="p-4 hover:shadow-lg transition-shadow border-border cursor-pointer text-left h-full group-disabled:pointer-events-none">
                         <Stethoscope className="w-8 h-8 text-emerald-500 mb-3" />
                         <h4 className="font-semibold">Medical</h4>
                         <p className="text-xs text-muted-foreground mt-1">Clinics and appointments</p>
-                        {plan !== 'business' && configsCount >= 1 && !existingTypes.includes("hospital") && (
+                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("hospital") && (
                           <div className="mt-2 text-[10px] text-amber-600 font-medium whitespace-nowrap">Business Plan Required</div>
                         )}
                       </Card>
@@ -516,14 +516,14 @@ const Knowledge = () => {
                     <button
                       type="button"
                       onClick={() => handleSelectBusinessType("custom")}
-                      disabled={plan !== 'business' && configsCount >= 1 && !existingTypes.includes("custom")}
+                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("custom")}
                       className="disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
                       <Card className="p-4 hover:shadow-lg transition-shadow border-dashed border-primary/50 cursor-pointer text-left h-full flex flex-col items-center justify-center text-center group-disabled:pointer-events-none">
                         <Plus className="w-8 h-8 text-primary mb-2" />
                         <h4 className="font-semibold">Custom</h4>
                         <p className="text-xs text-muted-foreground mt-1">Build from scratch</p>
-                        {plan !== 'business' && configsCount >= 1 && !existingTypes.includes("custom") && (
+                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("custom") && (
                           <div className="mt-2 text-[10px] text-amber-600 font-medium whitespace-nowrap">Business Plan Required</div>
                         )}
                       </Card>
