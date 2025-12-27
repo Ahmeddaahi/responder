@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone } from "lucide-react";
+import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone, DollarSign, Coins } from "lucide-react";
 import SplitText from "@/components/SplitText";
 import { Footer } from "@/components/ui/footer-section";
 import { FadeIn, SlideUp, SlideInLeft, SlideInRight, ScaleIn } from "@/components/ui/animate-on-scroll";
@@ -12,6 +12,7 @@ import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
 const Landing = () => {
   const navigate = useNavigate();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
 
   const faqs = [
     {
@@ -82,7 +83,7 @@ const Landing = () => {
     {
       name: "Starter",
       messages: "500",
-      price: "5",
+      price: currency === 'USD' ? "5" : "1000",
       features: [
         "500 messages per month",
         "5 knowledge items",
@@ -96,7 +97,7 @@ const Landing = () => {
     {
       name: "Enterprise",
       messages: "5000",
-      price: "25",
+      price: currency === 'USD' ? "25" : "9500",
       features: [
         "5,000 messages per month",
         "Unlimited knowledge items",
@@ -301,6 +302,26 @@ const Landing = () => {
                 </p>
               </SlideUp>
             </div>
+
+            <div className="flex flex-col items-center gap-6 mb-12">
+              <div className="flex bg-card/30 p-1.5 rounded-2xl border border-border/50 backdrop-blur-md shadow-lg">
+                <button
+                  onClick={() => setCurrency('USD')}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'USD' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
+                >
+                  <DollarSign className={`w-4 h-4 transition-transform ${currency === 'USD' ? 'scale-110' : ''}`} />
+                  USD
+                </button>
+                <button
+                  onClick={() => setCurrency('ETB')}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'ETB' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
+                >
+                  <Coins className={`w-4 h-4 transition-transform ${currency === 'ETB' ? 'scale-110' : ''}`} />
+                  ETB (Birr)
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto">
               {plans.map((plan, index) => (
                 <ScaleIn key={index} delay={0.1 * index}>
@@ -312,8 +333,10 @@ const Landing = () => {
                     )}
                     <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
                     <div className="mb-4 sm:mb-6">
-                      <span className="text-4xl sm:text-5xl font-bold">{plan.name === 'Custom' ? 'Contact' : `$${plan.price}`}</span>
-                      <span className="text-muted-foreground">{plan.name === 'Custom' ? '' : '/month'}</span>
+                      <span className="text-4xl sm:text-5xl font-bold">
+                        {plan.name === 'Custom' ? 'Contact' : (plan.price === '0' ? 'Free' : (currency === 'USD' ? '$' : 'ETB ') + plan.price)}
+                      </span>
+                      <span className="text-muted-foreground">{plan.name === 'Custom' || plan.name === 'Free Trial' ? '' : '/month'}</span>
                     </div>
                     <div className="mb-4 sm:mb-6">
                       <div className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">

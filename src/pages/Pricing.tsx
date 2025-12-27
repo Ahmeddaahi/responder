@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Check, TrendingUp, ArrowLeft, Phone, AlertCircle, ArrowUpRight, Zap, Rocket, Star } from "lucide-react";
+import { Check, TrendingUp, ArrowLeft, Phone, AlertCircle, ArrowUpRight, Zap, Rocket, Star, DollarSign, Coins } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 type Plan = 'free' | 'starter' | 'enterprise' | 'custom';
@@ -21,6 +21,7 @@ const Pricing = () => {
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
 
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
+  const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
 
   // Payment Modal State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -132,8 +133,8 @@ const Pricing = () => {
       description: "Higher limits & premium features for growing businesses",
       subDescription: null,
       messages: "500 messages/month",
-      price: "5",
-      priceMonthly: "$5 /mo",
+      price: currency === 'USD' ? "5" : "1000",
+      priceMonthly: currency === 'USD' ? "$5 /mo" : "1000 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
       buttonIcon: "Zap",
@@ -157,13 +158,13 @@ const Pricing = () => {
       description: "Maximum power for established companies",
       subDescription: null,
       messages: "10,000 messages/month",
-      price: "49",
-      priceMonthly: "$49 /mo",
+      price: currency === 'USD' ? "25" : "9500",
+      priceMonthly: currency === 'USD' ? "$25 /mo" : "9500 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
       buttonIcon: "Rocket",
       features: [
-        "10,000 messages per month",
+        "5,000 messages per month",
         "Unlimited Bookings",
         "Unlimited Room/Service types",
         "Premium AI (GPT-4o level)",
@@ -325,6 +326,30 @@ const Pricing = () => {
           </p>
         </div>
 
+        <div className="flex flex-col items-center gap-6 mb-12">
+          <div className="flex bg-card/30 p-1.5 rounded-2xl border border-border/50 backdrop-blur-md shadow-lg">
+            <button
+              onClick={() => setCurrency('USD')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'USD' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
+            >
+              <DollarSign className={`w-4 h-4 transition-transform ${currency === 'USD' ? 'scale-110' : ''}`} />
+              USD
+            </button>
+            <button
+              onClick={() => setCurrency('ETB')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'ETB' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
+            >
+              <Coins className={`w-4 h-4 transition-transform ${currency === 'ETB' ? 'scale-110' : ''}`} />
+              ETB (Birr)
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground/80 bg-muted/20 px-4 py-1.5 rounded-full border border-border/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Pricing updated for {currency}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {plans.map((planItem, index) => {
             const IconComponent = getButtonIcon(planItem.buttonIcon);
@@ -374,7 +399,9 @@ const Pricing = () => {
                   {planItem.price ? (
                     <div className="mb-6">
                       <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-4xl font-bold text-foreground">${planItem.price}</span>
+                        <span className="text-4xl font-bold text-foreground">
+                          {currency === 'USD' ? '$' : 'ETB '}{planItem.price}
+                        </span>
                         <span className="text-lg text-muted-foreground">/mo</span>
                       </div>
                       <p className="text-xs text-muted-foreground">{planItem.priceAnnually}</p>
