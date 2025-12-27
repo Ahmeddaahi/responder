@@ -544,7 +544,7 @@ serve(async (req) => {
                     // Check message limit BEFORE processing and fetch plan limits
                     const { data: subData, error: subError } = await supabase
                         .from('subscriptions')
-                        .select('messages_used, message_limit, plan, knowledge_base_limit, products_limit, max_chars_per_item, bookings_used, bookings_limit')
+                        .select('messages_used, message_limit, plan, knowledge_base_limit, products_limit, max_chars_per_item, bookings_used, bookings_limit, expires_at')
                         .eq('user_id', userId)
                         .single();
 
@@ -555,6 +555,18 @@ serve(async (req) => {
                             accessToken,
                             customerPhone,
                             '❌ Sorry, I encountered an error. Please try again later.'
+                        );
+                        continue;
+                    }
+
+                    // Check for subscription expiry
+                    if (subData.expires_at && new Date(subData.expires_at) < new Date()) {
+                        console.log(`⚠️ User ${userId} subscription expired on: ${subData.expires_at}`);
+                        await sendWhatsAppMessage(
+                            phoneNumberId,
+                            accessToken,
+                            customerPhone,
+                            `⚠️ Your subscription expired on ${new Date(subData.expires_at).toLocaleDateString()}. Please renew your plan to continue using the AI assistant.`
                         );
                         continue;
                     }

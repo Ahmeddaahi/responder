@@ -18,7 +18,7 @@ interface PaymentModalProps {
     amount: string;
 }
 
-type PaymentMethod = 'ebirr' | 'zaad' | 'edahab' | 'crypto' | 'bitnob';
+type PaymentMethod = 'ebirr' | 'zaad' | 'edahab' | 'crypto' | 'premierbank';
 
 const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) => {
     const [step, setStep] = useState<1 | 2>(1);
@@ -30,7 +30,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
     const [creatingCryptoOrder, setCreatingCryptoOrder] = useState(false);
     const [paymentName, setPaymentName] = useState("");
     const [paymentPhone, setPaymentPhone] = useState("");
-    const [creatingBitnobOrder, setCreatingBitnobOrder] = useState(false);
+    const [creatingPremierBankOrder, setCreatingPremierBankOrder] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const { toast } = useToast();
     const navigate = useNavigate();
@@ -38,11 +38,11 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
     const handleMethodSelect = async (method: PaymentMethod) => {
         setPaymentMethod(method);
 
-        // If crypto or bitnob is selected, immediately create order and redirect
+        // If crypto or premier bank is selected, immediately create order and redirect
         if (method === 'crypto') {
             await handleCryptoPayment();
-        } else if (method === 'bitnob') {
-            await handleBitnobPayment();
+        } else if (method === 'premierbank') {
+            await handlePremierBankPayment();
         }
     };
 
@@ -80,20 +80,17 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
         }
     };
 
-    const handleBitnobPayment = async () => {
+    const handlePremierBankPayment = async () => {
         const plan = planName.toLowerCase();
         let paymentLink = "";
 
-        if (plan === 'starter' || plan === 'pro') {
-            paymentLink = import.meta.env.VITE_BITNOB_PRO_LINK;
-        } else if (plan === 'enterprise' || plan === 'business') {
-            paymentLink = import.meta.env.VITE_BITNOB_BUSINESS_LINK;
-        }
+        // Use the link provided by the user, falling back to env variable if needed
+        paymentLink = "https://www.premierbank.so/paymern";
 
         if (paymentLink) {
             window.location.href = paymentLink;
         } else {
-            console.error(`Bitnob link not configured for plan: ${plan}`);
+            console.error(`Premier Bank link not configured`);
             toast({
                 title: "Configuration Error",
                 description: "Payment link not configured. Please contact support.",
@@ -388,12 +385,12 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                 disabled: false
             },
             {
-                id: 'bitnob' as PaymentMethod,
-                name: 'Card (Bitnob)',
+                id: 'premierbank' as PaymentMethod,
+                name: 'Card (Premier Bank)',
                 subtitle: 'Pay with your card',
                 logo: null,
                 alt: 'Card',
-                disabled: creatingBitnobOrder || creatingCryptoOrder,
+                disabled: creatingPremierBankOrder || creatingCryptoOrder,
                 icon: (
                     <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
@@ -409,7 +406,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                 subtitle: 'Pay with cryptocurrency',
                 logo: null,
                 alt: 'Crypto',
-                disabled: creatingCryptoOrder || creatingBitnobOrder,
+                disabled: creatingCryptoOrder || creatingPremierBankOrder,
                 icon: (
                     <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="text-primary" />
@@ -427,8 +424,8 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                             key={method.id}
                             onClick={() => !method.disabled && handleMethodSelect(method.id)}
                             className={`w-full p-4 rounded-xl border transition-all flex items-center gap-4 hover:border-primary/50 ${paymentMethod === method.id
-                                    ? 'border-primary/50 bg-primary/5'
-                                    : 'border-border/50 bg-card/50'
+                                ? 'border-primary/50 bg-primary/5'
+                                : 'border-border/50 bg-card/50'
                                 } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             disabled={method.disabled}
                         >
@@ -451,11 +448,11 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                             {/* Text content in the middle */}
                             <div className="flex-1 flex flex-col items-start gap-1">
                                 <span className={`font-bold text-base ${paymentMethod === method.id
-                                        ? 'text-yellow-400'
-                                        : 'text-yellow-300/90'
+                                    ? 'text-yellow-400'
+                                    : 'text-yellow-300/90'
                                     }`}>
-                                    {method.disabled && (method.id === 'crypto' || method.id === 'bitnob')
-                                        ? (method.id === 'crypto' && creatingCryptoOrder ? 'Loading...' : method.id === 'bitnob' && creatingBitnobOrder ? 'Loading...' : method.name)
+                                    {method.disabled && (method.id === 'crypto' || method.id === 'premierbank')
+                                        ? (method.id === 'crypto' && creatingCryptoOrder ? 'Loading...' : method.id === 'premierbank' && creatingPremierBankOrder ? 'Loading...' : method.name)
                                         : method.name
                                     }
                                 </span>
@@ -467,8 +464,8 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                             {/* Radio button on the right */}
                             <div className="flex-shrink-0">
                                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id
-                                        ? 'border-primary bg-primary'
-                                        : 'border-border'
+                                    ? 'border-primary bg-primary'
+                                    : 'border-border'
                                     }`}>
                                     {paymentMethod === method.id && (
                                         <div className="w-2.5 h-2.5 rounded-full bg-background" />
@@ -481,7 +478,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
 
                 <Button
                     className="w-full"
-                    disabled={!paymentMethod || paymentMethod === 'crypto' || paymentMethod === 'bitnob' || creatingCryptoOrder || creatingBitnobOrder}
+                    disabled={!paymentMethod || paymentMethod === 'crypto' || paymentMethod === 'premierbank' || creatingCryptoOrder || creatingPremierBankOrder}
                     onClick={() => setStep(2)}
                 >
                     Continue
@@ -496,7 +493,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
             zaad: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
             edahab: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
             crypto: { number: "", name: "" },
-            bitnob: { number: "", name: "" }
+            premierbank: { number: "", name: "" }
         };
 
         const currentDetails = paymentMethod ? paymentDetails[paymentMethod] : { number: "0995716810", name: "" };

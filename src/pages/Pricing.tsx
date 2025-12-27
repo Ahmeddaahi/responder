@@ -102,19 +102,19 @@ const Pricing = () => {
   const plans = [
     {
       id: "01",
-      name: "Free",
-      subName: null,
+      name: "Free Trial",
+      subName: "Try for 30 days",
       plan: "free" as Plan,
-      description: "Perfect for testing and small businesses",
-      subDescription: "Try for free.",
-      messages: "50 messages/month",
+      description: "One-time trial for new users to test our AI assistant",
+      subDescription: "No credit card required.",
+      messages: "50 messages total",
       price: null,
       priceMonthly: null,
       priceAnnually: null,
       buttonText: "Get Started",
       buttonIcon: "ArrowUpRight",
       features: [
-        "50 messages per month",
+        "50 messages total (One-time)",
         "5 Bookings included",
         "2 Room/Service types",
         "Standard AI assistant",
@@ -131,14 +131,14 @@ const Pricing = () => {
       plan: "starter" as Plan,
       description: "Higher limits & premium features for growing businesses",
       subDescription: null,
-      messages: "1,000 messages/month",
-      price: "19",
-      priceMonthly: "$19 /mo",
+      messages: "500 messages/month",
+      price: "5",
+      priceMonthly: "$5 /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
       buttonIcon: "Zap",
       features: [
-        "1,000 messages per month",
+        "500 messages per month",
         "50 Bookings included",
         "10 Room/Service types",
         "Advanced AI assistant",
@@ -261,7 +261,7 @@ const Pricing = () => {
 
         toast({
           title: "Plan Selected!",
-          description: `You're now on the ${plan} plan. Let's set up your AI agent.`,
+          description: `You're now on the ${plan} trial. Explore our features!`,
         });
 
         navigate("/settings");
@@ -408,7 +408,7 @@ const Pricing = () => {
                     onClick={() => {
                       // Map plan to message limits based on database schema
                       const messageLimits: Record<string, number> = {
-                        'Free': 50,
+                        'Free Trial': 50,
                         'Starter': 500,
                         'Enterprise': 5000,
                         'Custom': 10000 // Default for custom, can be edited by admin

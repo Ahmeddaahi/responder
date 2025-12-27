@@ -117,13 +117,27 @@ serve(async (req) => {
         // Check message limit BEFORE processing and fetch plan limits
         const { data: subData, error: subError } = await supabase
             .from('subscriptions')
-            .select('messages_used, message_limit, plan, knowledge_base_limit, products_limit, max_chars_per_item')
+            .select('messages_used, message_limit, plan, knowledge_base_limit, products_limit, max_chars_per_item, expires_at')
             .eq('user_id', userId)
             .single();
 
         if (subError) {
             console.error('Failed to fetch subscription:', subError);
             throw new Error('Failed to check message limit');
+        }
+
+        // Check for subscription expiry
+        if (subData.expires_at && new Date(subData.expires_at) < new Date()) {
+            console.log(`⚠️ User ${userId} subscription expired on: ${subData.expires_at}`);
+            return new Response(
+                JSON.stringify({
+                    error: 'Subscription expired',
+                    limitExceeded: true,
+                    plan: subData.plan,
+                    response: `⚠️ Your subscription expired on ${new Date(subData.expires_at).toLocaleDateString()}. Please renew your plan to continue using the AI assistant.`
+                }),
+                { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
         }
 
         // Enforce message limit
@@ -330,7 +344,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
         context += '2. PRODUCT LISTINGS: When customers ask "what products do you have" or "what do you sell", FIRST list ALL products from the "PRODUCTS LIST" section above (if it exists), then list any additional products mentioned in the knowledge base content above, all with their prices.\n';
         context += '3. PRICING: When customers ask about prices, search the knowledge base content above for pricing information and present it clearly.\n';
         context += '4. BUSINESS DETAILS: When customers ask about business details (location, hours, contact, services), extract and present this information from the content above.\n';
-        
+
         // Build service list instructions based on what's actually enabled
         const serviceInstructions: string[] = [];
         if (bookingConfig && bookingConfig.is_active) {
@@ -345,7 +359,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
         if (bookingConfig && bookingConfig.is_active) {
             serviceInstructions.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
         }
-        
+
         context += '5. **LISTING AVAILABLE SERVICES (IMPORTANT)**: When customers ask "what can you do?", "what services do you offer?", "maxaad iigu caawin kartaa?" (Somali), "what can you help me with?", "what do you offer?", or similar questions about your capabilities:\n';
         if (serviceInstructions.length > 0) {
             context += `   - You MUST list the following services in a friendly, easy-to-read format:\n`;
@@ -377,7 +391,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
                 context += `   - Example: "I can help you with information about our business. Please tell me how I can assist you."\n`;
             }
         }
-        
+
         context += '6. IMPORTANT: You MUST search the knowledge base content above before saying information is not available. Do not default to contact information - first check if the product exists in the knowledge base.\n';
         context += '7. Only provide information that exists in the knowledge base content above. If information is truly not available, then politely say so.';
 
@@ -385,14 +399,14 @@ Answer questions based ONLY on the information provided below. Extract and prese
         if (forcedLanguage === 'somali') {
             context += '\n\n=== TILMAAMO SOOMAALI AH - HORAY U AKHRI ===\n';
             context += 'Waxaad tahay kaaliye ganacsi oo Soomaali ah oo faa\'iido leh. Isticmaal Soomaali dabiici ah, fudud, oo fahamsan.\n\n';
-            
+
             context += '**QAABKA JAWAABTA (RESPONSE STYLE)**:\n';
             context += '- WELIGAA ka jawaab si gaaban oo fudud (2-3 oo erayo keliya)\n';
             context += '- Isticmaal erayo fudud oo fahamsan (ka fogow erayo adag oo aan la fahmin)\n';
             context += '- Noqo nasii, edeb leh, oo si toos ah u jawaab\n';
             context += '- Ka fogow faahfaahin dheeraad ah - si dhakhso ah u jawaab su\'aasha\n';
             context += '- Wixii jawaab aad bixiso ha fahmayso qof waliba\n\n';
-            
+
             context += '**EREYO IYO HADALKA DABIICIGA AH (NATURAL PHRASES)**:\n';
             context += 'Isticmaal ereyada Soomaaliga dabiiciga ah:\n';
             context += '- "Haa" (yes), "Maya" (no), "Waa run" (that\'s right), "Maaha" (it\'s not)\n';
@@ -403,7 +417,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
             context += '- "Waan ka xunnahay" (I\'m sorry), "Waan ka xumahay" (I\'m sorry - stronger), "Waan ka raalli ahay" (I agree)\n';
             context += '- "Haye" (okay/sure), "Waa hagaag" (it\'s fine), "Waa la heli karaa" (it can be found)\n';
             context += '- "Fadlan" (please), "Mahadsanid" (thank you), "Waan ku mahadcelinayaa" (I thank you)\n\n';
-            
+
             context += '**TUSAALO JAWAABO (EXAMPLE RESPONSES)**:\n';
             context += 'Marka macmiilku weydiiyo alaab:\n';
             context += '- "Haa, waxaan haynaa iPhone 16 Pro. Qiimahiisu waa 120000 ETB. Waa original."\n';
@@ -411,21 +425,21 @@ Answer questions based ONLY on the information provided below. Extract and prese
             context += '- "Waxaan haynaa:\n';
             context += '  - iPhone 16 Pro: 120000 ETB\n';
             context += '  - Samsung Galaxy S24: 95000 ETB"\n\n';
-            
+
             context += 'Marka macmiilku weydiiyo qiimaha:\n';
             context += '- "Qiimahiisu waa 120000 ETB."\n';
             context += '- "Waxaan kuu sheegi karaa qiimaha alaab kasta."\n\n';
-            
+
             context += 'Marka macmiilku weydiiyo macluumaadka ganacsiga:\n';
             context += '- "Waxaan kuu sheegi karaa macluumaadka ganacsiga."\n';
             context += '- "Ganacsigu waa furan maalinta kasta 8:00 AM ilaa 8:00 PM."\n\n';
-            
+
             context += '**XUSUUS (MEMORY)**:\n';
             context += '- Waxaad leedahay xasuus ka mid ah sheekadii hore ee macmiilkan\n';
             context += '- Isticmaal macluumaadka taariikhda sheekada si aad ugu jawaabtid si shaqsi ah oo xirfad leh\n';
             context += '- Haddii macmiilku ku weydiiyo wax aad hore ugu sheegtay, ka jawaab iyadoo lagu salaynayo taariikhda sheekada\n';
             context += '- Xusuuso macluumaadka kasta oo macmiilku bixiyay (magac, cinwaan, xidhiidh, dalabyo hore, iwm)\n\n';
-            
+
             context += '**EDEB IYO NASIIN (POLITENESS)**:\n';
             context += '- Isticmaal "Walaal" marka aad macmiilka ugu hadasho (warmth and respect)\n';
             context += '- Isticmaal "Fadlan" marka aad codsato wax\n';

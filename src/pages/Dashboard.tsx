@@ -571,7 +571,7 @@ const Dashboard = () => {
                   </Badge>
                 </div>
                 <Badge variant="outline" className={`text-[10px] font-normal border-orange-200 capitalize`}>
-                  {subscription?.plan === 'starter' ? 'Pro' : subscription?.plan === 'enterprise' ? 'Business' : subscription?.plan}
+                  {subscription?.plan === 'starter' ? 'Pro' : subscription?.plan === 'enterprise' ? 'Business' : subscription?.plan === 'free' ? 'Free Trial' : subscription?.plan}
                 </Badge>
               </div>
               <div className="space-y-4">

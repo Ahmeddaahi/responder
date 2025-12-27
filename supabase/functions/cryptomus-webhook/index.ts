@@ -131,6 +131,7 @@ serve(async (req) => {
                         messages_used: 0,
                         is_active: true,
                         started_at: new Date().toISOString(),
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                     }, {
                         onConflict: 'user_id'
                     });

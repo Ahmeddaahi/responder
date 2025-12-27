@@ -28,7 +28,7 @@ const Landing = () => {
     },
     {
       question: "How much does Resbonder cost?",
-      answer: "We offer four plans: Free, Starter ($5/month), Enterprise ($25/month), and Custom. Each plan is designed to scale with your business needs, offering varying message limits and feature sets."
+      answer: "We offer four plans: Free Trial, Starter ($5/month), Enterprise ($25/month), and Custom. Our Free Trial gives you a taste of AI automation with no credit card required."
     },
     {
       question: "How quickly can I set up my AI chatbot?",
@@ -66,11 +66,11 @@ const Landing = () => {
 
   const plans = [
     {
-      name: "Free",
-      messages: "50",
+      name: "Free Trial",
+      messages: "50 total",
       price: "0",
       features: [
-        "50 messages per month",
+        "50 messages total (one-time)",
         "3 knowledge items",
         "10 products",
         "1,000 chars per item",
@@ -297,7 +297,7 @@ const Landing = () => {
               <SlideUp>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">Simple, Transparent Pricing for AI Chatbot Plans</h2>
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                  Choose the plan that fits your business needs. Start with our free WhatsApp bot plan.
+                  Choose the plan that fits your business needs. Start with our one-time Free Trial.
                 </p>
               </SlideUp>
             </div>

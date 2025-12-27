@@ -280,7 +280,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                       {getDisplayName()}
                     </span>
                     <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-                      {isAdmin ? 'Admin' : (plan === 'starter' ? 'Pro' : plan === 'enterprise' ? 'Business' : plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Member')}
+                      {isAdmin ? 'Admin' : (plan === 'starter' ? 'Pro' : plan === 'enterprise' ? 'Business' : plan === 'free' ? 'Free Trial' : plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Member')}
                     </span>
                   </div>
                 </button>
