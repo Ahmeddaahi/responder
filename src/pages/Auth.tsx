@@ -252,8 +252,11 @@ const Auth = () => {
         }
 
         if (isNewUser && isOAuthUser) {
-          // New OAuth user - redirect directly to pricing (no email verification needed)
-          console.log('🆕 New OAuth user detected, redirecting to pricing page');
+          // New OAuth user - send welcome email and redirect directly to pricing
+          console.log('🆕 New OAuth user detected, sending welcome email and redirecting to pricing page');
+          if (userEmail) {
+            sendWelcomeEmailForUser(userEmail, userId, true); // send silently
+          }
           navigate("/pricing");
         } else if (!isNewUser) {
           // Existing user - redirect to dashboard

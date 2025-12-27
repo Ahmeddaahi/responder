@@ -12,185 +12,176 @@ interface SendVerificationEmailBody {
   redirectTo?: string;
 }
 
-// Send verification email via Resend
-async function sendVerificationEmail(email: string, confirmationUrl: string): Promise<void> {
-  console.log('📧 sendVerificationEmail called for:', email);
+// Send welcoming/verification email via Resend
+async function sendWelcomeEmail(email: string, actionUrl: string, isVerified: boolean): Promise<void> {
+  console.log('📧 sendWelcomeEmail called for:', email, 'isVerified:', isVerified);
 
   const resendApiKey = Deno.env.get('RESEND_API_KEY');
   if (!resendApiKey) {
     console.error('❌ RESEND_API_KEY not found in environment');
     throw new Error('RESEND_API_KEY not configured');
   }
-  console.log('✅ RESEND_API_KEY found');
 
   const senderEmail = Deno.env.get('RESEND_SENDER_EMAIL') || 'onboarding@resend.dev';
-  const senderName = Deno.env.get('RESEND_SENDER_NAME') || 'Reply Ready Bot';
+  const senderName = Deno.env.get('RESEND_SENDER_NAME') || 'Resbonder';
+  const logoUrl = 'https://resbonder.online/favicon.webp';
 
-  console.log('📋 Email configuration:', {
-    senderEmail: senderEmail,
-    senderName: senderName,
-    recipient: email,
-  });
+  const subject = isVerified
+    ? 'Welcome to Resbonder! 🚀'
+    : 'Verify your email - Resbonder';
+
+  const title = isVerified ? 'Welcome to Resbonder' : 'Verify your email';
+  const message = isVerified
+    ? "We're absolutely thrilled to have you on board! Your account has been successfully set up and is ready for action. You can now start building your AI-powered WhatsApp business agent."
+    : "Thank you for choosing Resbonder. We're excited to help you automate your business communications on WhatsApp. Before we get started, please confirm your email address to secure your account.";
+
+  const buttonText = isVerified ? 'Go to Dashboard' : 'Confirm Email Address';
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+          body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #374151; 
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+          }
+          .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #ffffff;
+            padding-bottom: 40px;
+          }
+          .content-card {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 40px 20px;
+          }
+          .logo-wrapper {
+            text-align: center;
+            margin-bottom: 32px;
+          }
+          .logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: inline-block;
+          }
+          .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: -0.025em;
+          }
+          .main-text {
+            font-size: 16px;
+            color: #4b5563;
+            text-align: center;
+            margin-bottom: 32px;
+            line-height: 1.7;
+          }
+          .button-wrapper {
+            text-align: center;
+            margin-bottom: 32px;
+          }
+          .action-button {
+            background-color: #000000;
+            color: #ffffff !important;
+            padding: 16px 32px;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 10px;
+            display: inline-block;
+            font-size: 16px;
+            transition: opacity 0.2s;
+          }
+          .divider {
+            height: 1px;
+            background-color: #f3f4f6;
+            margin: 40px 0;
+          }
+          .footer-section {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+          }
+          .footer-text {
+            margin-bottom: 8px;
+          }
+          .brand-name {
+            color: #111827;
+            font-weight: 600;
+            font-size: 16px;
+          }
+          .link-fallback {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 24px;
+            word-break: break-all;
+          }
+          .link-fallback a {
+            color: #6b7280;
+            text-decoration: underline;
+          }
+          @media only screen and (max-width: 600px) {
+            .header-title { font-size: 28px; }
+            .content-card { padding: 40px 16px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="content-card">
+            <div class="logo-wrapper">
+              <img src="${logoUrl}" alt="Resbonder" class="logo">
+            </div>
+            
+            <h1 class="header-title">${title}</h1>
+            
+            <p class="main-text">
+              ${message}
+            </p>
+            
+            <div class="button-wrapper">
+              <a href="${actionUrl}" class="action-button">${buttonText}</a>
+            </div>
+
+            <div class="link-fallback">
+              Trouble clicking? Copy and paste this URL into your browser:<br>
+              <a href="${actionUrl}">${actionUrl}</a>
+            </div>
+
+            <div class="divider"></div>
+            
+            <div class="footer-section">
+              <p class="footer-text">This email was sent to confirm your identity with Resbonder.</p>
+              <p class="brand-name">Resbonder Team</p>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
 
   const emailBody = {
     from: `${senderName} <${senderEmail}>`,
     to: [email],
-    subject: 'Verify your email address - Reply Ready Bot',
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-              line-height: 1.6; 
-              color: #333333; 
-              background-color: #f5f5f5;
-              padding: 20px;
-            }
-            .email-wrapper {
-              max-width: 600px; 
-              margin: 0 auto; 
-              background-color: #ffffff;
-              border-radius: 12px;
-              overflow: hidden;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              padding: 40px 30px;
-              text-align: center;
-            }
-            .header-title {
-              color: #ffffff;
-              font-size: 24px;
-              font-weight: 700;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .greeting {
-              font-size: 18px;
-              font-weight: 600;
-              color: #1a1a1a;
-              margin-bottom: 20px;
-            }
-            .message {
-              font-size: 16px;
-              color: #4a4a4a;
-              margin-bottom: 30px;
-              line-height: 1.7;
-            }
-            .button-container {
-              text-align: center;
-              margin: 30px 0;
-            }
-            .verify-button {
-              display: inline-block;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: #ffffff;
-              text-decoration: none;
-              padding: 16px 40px;
-              border-radius: 8px;
-              font-size: 16px;
-              font-weight: 600;
-              box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-              transition: transform 0.2s, box-shadow 0.2s;
-            }
-            .verify-button:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-            }
-            .link-fallback {
-              font-size: 14px;
-              color: #666666;
-              margin-top: 20px;
-              word-break: break-all;
-            }
-            .link-fallback a {
-              color: #667eea;
-              text-decoration: none;
-            }
-            .info-box {
-              background-color: #f0f9ff;
-              border-left: 4px solid #667eea;
-              padding: 15px 20px;
-              margin: 30px 0;
-              border-radius: 6px;
-            }
-            .info {
-              color: #1e40af;
-              font-size: 14px;
-              font-weight: 500;
-              line-height: 1.6;
-            }
-            .footer {
-              background-color: #f9fafb;
-              padding: 30px;
-              text-align: center;
-              border-top: 1px solid #e5e7eb;
-            }
-            .footer-text {
-              font-size: 14px;
-              color: #6b7280;
-              margin-bottom: 10px;
-            }
-            .footer-signature {
-              font-size: 16px;
-              color: #1a1a1a;
-              font-weight: 600;
-              margin-top: 15px;
-            }
-            @media only screen and (max-width: 600px) {
-              .content { padding: 30px 20px; }
-              .header { padding: 30px 20px; }
-              .verify-button { 
-                padding: 14px 30px;
-                font-size: 14px;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="email-wrapper">
-            <div class="header">
-              <div class="header-title">Welcome!</div>
-            </div>
-            <div class="content">
-              <div class="greeting">Hello!</div>
-              <div class="message">
-                Thank you for signing up! We're excited to have you on board. To complete your registration and activate your account, please verify your email address by clicking the button below.
-              </div>
-              <div class="button-container">
-                <a href="${confirmationUrl}" class="verify-button">Verify</a>
-              </div>
-              <div class="link-fallback">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${confirmationUrl}">${confirmationUrl}</a>
-              </div>
-              <div class="info-box">
-                <div class="info">
-                  🔒 This verification link will expire in 24 hours. If you didn't create an account, please ignore this email.
-                </div>
-              </div>
-            </div>
-            <div class="footer">
-              <div class="footer-text">
-                Need help? Contact our support team if you have any questions.
-              </div>
-              <div class="footer-signature">
-                Best regards,<br>
-                ${senderName} Team
-              </div>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
-    text: `Welcome!\n\nHello!\n\nThank you for signing up! We're excited to have you on board. To complete your registration and activate your account, please verify your email address by clicking the link below.\n\nVerify: ${confirmationUrl}\n\nThis verification link will expire in 24 hours. If you didn't create an account, please ignore this email.\n\nNeed help? Contact our support team if you have any questions.\n\nBest regards,\n${senderName} Team`,
+    subject: subject,
+    html: emailHtml,
+    text: `${title}\n\nHello!\n\n${message}\n\n${buttonText}: ${actionUrl}`,
   };
 
   console.log('🌐 Calling Resend API...');
@@ -203,15 +194,9 @@ async function sendVerificationEmail(email: string, confirmationUrl: string): Pr
     body: JSON.stringify(emailBody),
   });
 
-  console.log('📡 Resend API response status:', response.status);
-
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('❌ Resend API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText,
-    });
+    console.error('❌ Resend API error:', errorText);
     throw new Error(`Failed to send email: ${response.status} ${errorText}`);
   }
 
@@ -277,20 +262,24 @@ serve(async (req) => {
     console.log('✅ User found:', { id: user.id, email: user.email, confirmed: !!user.email_confirmed_at });
 
     // Generate appropriate link based on confirmation status
-    let linkType: 'signup' | 'magiclink' = 'signup';
-    if (user.email_confirmed_at) {
-      console.log('⚠️ User email already verified (email confirmation disabled), sending welcome email with magic link');
-      linkType = 'magiclink'; // Use magic link for already confirmed users
+    let linkType: 'signup' | 'magiclink' | 'invite' = 'signup';
+    const isVerified = !!user.email_confirmed_at;
+
+    if (isVerified) {
+      console.log('⚠️ User email already verified, sending welcome email with magic link');
+      linkType = 'magiclink';
     } else {
       console.log('🔑 User needs email verification, generating signup confirmation link');
     }
 
     console.log('🔑 Generating link (type:', linkType, ')...');
-    // Generate confirmation token and URL
+
     // Redirect to pricing page after verification so new users can choose their plan
     const siteUrl = Deno.env.get('SITE_URL') || 'https://resbonder.online';
-    // Use redirectTo from request if provided, otherwise default to pricing page
-    const finalRedirectUrl = redirectTo || `${siteUrl}/pricing`;
+
+    // For verified users, if no redirectTo is provided, default to dashboard
+    const defaultRedirect = isVerified ? `${siteUrl}/dashboard` : `${siteUrl}/pricing`;
+    const finalRedirectUrl = redirectTo || defaultRedirect;
 
     console.log('🔗 Using redirect URL:', finalRedirectUrl);
 
@@ -308,20 +297,15 @@ serve(async (req) => {
     }
 
     console.log('✅ Confirmation link generated');
-    console.log('🔗 Confirmation URL:', tokenData.properties.action_link.substring(0, 50) + '...');
-
-    // Check Resend configuration
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendApiKey) {
-      console.error('❌ RESEND_API_KEY not configured');
-      throw new Error('RESEND_API_KEY not configured');
-    }
-    console.log('✅ Resend API key found');
 
     // Send email via Resend
     console.log('📤 Sending email via Resend...');
     try {
-      await sendVerificationEmail(email.toLowerCase(), tokenData.properties.action_link);
+      await sendWelcomeEmail(
+        email.toLowerCase(),
+        tokenData.properties.action_link,
+        isVerified
+      );
       console.log('✅ Email sent successfully via Resend');
     } catch (emailError: any) {
       console.error('❌ Email sending error:', emailError);
