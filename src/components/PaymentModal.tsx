@@ -81,39 +81,25 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
     };
 
     const handleBitnobPayment = async () => {
-        setCreatingBitnobOrder(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                throw new Error('Not authenticated');
-            }
+        const plan = planName.toLowerCase();
+        let paymentLink = "";
 
-            // Call Supabase Edge Function to create Bitnob checkout
-            const { data, error } = await supabase.functions.invoke('create-bitnob-checkout', {
-                body: {
-                    plan_id: planName.toLowerCase(),
-                    customer_email: session.user.email
-                }
-            });
+        if (plan === 'starter' || plan === 'pro') {
+            paymentLink = import.meta.env.VITE_BITNOB_PRO_LINK;
+        } else if (plan === 'enterprise' || plan === 'business') {
+            paymentLink = import.meta.env.VITE_BITNOB_BUSINESS_LINK;
+        }
 
-            if (error) throw error;
-
-            if (data?.payment_url) {
-                // Redirect to Bitnob checkout page
-                window.location.href = data.payment_url;
-            } else {
-                throw new Error('No payment URL received');
-            }
-        } catch (error: any) {
-            console.error('Bitnob payment error:', error);
+        if (paymentLink) {
+            window.location.href = paymentLink;
+        } else {
+            console.error(`Bitnob link not configured for plan: ${plan}`);
             toast({
-                title: "Error",
-                description: error.message || "Failed to create card payment order",
+                title: "Configuration Error",
+                description: "Payment link not configured. Please contact support.",
                 variant: "destructive",
             });
             setPaymentMethod(null);
-        } finally {
-            setCreatingBitnobOrder(false);
         }
     };
 
@@ -440,23 +426,22 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                         <button
                             key={method.id}
                             onClick={() => !method.disabled && handleMethodSelect(method.id)}
-                            className={`w-full p-4 rounded-xl border transition-all flex items-center gap-4 hover:border-primary/50 ${
-                                paymentMethod === method.id 
-                                    ? 'border-primary/50 bg-primary/5' 
+                            className={`w-full p-4 rounded-xl border transition-all flex items-center gap-4 hover:border-primary/50 ${paymentMethod === method.id
+                                    ? 'border-primary/50 bg-primary/5'
                                     : 'border-border/50 bg-card/50'
-                            } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             disabled={method.disabled}
                         >
                             {/* Logo/Icon on the left */}
                             <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
                                 {method.logo ? (
-                                    <img 
-                                        src={method.logo} 
-                                        alt={method.alt} 
-                                        className="w-full h-full object-contain" 
-                                        loading="lazy" 
-                                        width="48" 
-                                        height="48" 
+                                    <img
+                                        src={method.logo}
+                                        alt={method.alt}
+                                        className="w-full h-full object-contain"
+                                        loading="lazy"
+                                        width="48"
+                                        height="48"
                                     />
                                 ) : (
                                     method.icon
@@ -465,12 +450,11 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
 
                             {/* Text content in the middle */}
                             <div className="flex-1 flex flex-col items-start gap-1">
-                                <span className={`font-bold text-base ${
-                                    paymentMethod === method.id 
-                                        ? 'text-yellow-400' 
+                                <span className={`font-bold text-base ${paymentMethod === method.id
+                                        ? 'text-yellow-400'
                                         : 'text-yellow-300/90'
-                                }`}>
-                                    {method.disabled && (method.id === 'crypto' || method.id === 'bitnob') 
+                                    }`}>
+                                    {method.disabled && (method.id === 'crypto' || method.id === 'bitnob')
                                         ? (method.id === 'crypto' && creatingCryptoOrder ? 'Loading...' : method.id === 'bitnob' && creatingBitnobOrder ? 'Loading...' : method.name)
                                         : method.name
                                     }
@@ -482,11 +466,10 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
 
                             {/* Radio button on the right */}
                             <div className="flex-shrink-0">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                    paymentMethod === method.id
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id
                                         ? 'border-primary bg-primary'
                                         : 'border-border'
-                                }`}>
+                                    }`}>
                                     {paymentMethod === method.id && (
                                         <div className="w-2.5 h-2.5 rounded-full bg-background" />
                                     )}
