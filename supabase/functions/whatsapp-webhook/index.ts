@@ -1401,15 +1401,32 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                                     .update(bookingData)
                                                     .eq('id', existingBooking.id);
                                                 console.log('✅ Updated booking record from AI JSON');
+
+                                                // Send booking update email (fire and forget)
+                                                supabase.functions.invoke('send-booking-reminder-email', {
+                                                    body: { bookingId: existingBooking.id, actionType: 'updated' }
+                                                }).catch(err => console.error('⚠️ Error sending booking update email:', err));
                                             } else {
                                                 // Create new booking (only if we have meaningful data or explicit intent)
                                                 // Ensure status defaults to pending if not in JSON
                                                 if (!bookingData.status) bookingData.status = 'pending';
 
-                                                await supabase
+                                                const { data: newBooking, error: insertError } = await supabase
                                                     .from('bookings')
-                                                    .insert(bookingData);
-                                                console.log('✅ Created booking record from AI JSON');
+                                                    .insert(bookingData)
+                                                    .select('id')
+                                                    .single();
+
+                                                if (!insertError && newBooking) {
+                                                    console.log('✅ Created booking record from AI JSON');
+
+                                                    // Send new booking email (fire and forget)
+                                                    supabase.functions.invoke('send-booking-reminder-email', {
+                                                        body: { bookingId: newBooking.id, actionType: 'created' }
+                                                    }).catch(err => console.error('⚠️ Error sending new booking email:', err));
+                                                } else if (insertError) {
+                                                    console.error('❌ Error creating booking:', insertError);
+                                                }
                                             }
 
                                             // 5. Decrease room count if booking is confirmed and room_type is specified
