@@ -1402,10 +1402,13 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                                     .eq('id', existingBooking.id);
                                                 console.log('✅ Updated booking record from AI JSON');
 
-                                                // Send booking update email (fire and forget)
-                                                supabase.functions.invoke('send-booking-reminder-email', {
-                                                    body: { bookingId: existingBooking.id, actionType: 'updated' }
-                                                }).catch(err => console.error('⚠️ Error sending booking update email:', err));
+                                                // Only send email if booking was just confirmed (not on every update)
+                                                if (isNewlyConfirmed) {
+                                                    console.log('📧 Booking newly confirmed, sending email notification');
+                                                    supabase.functions.invoke('send-booking-reminder-email', {
+                                                        body: { bookingId: existingBooking.id, actionType: 'created' }
+                                                    }).catch(err => console.error('⚠️ Error sending booking confirmation email:', err));
+                                                }
                                             } else {
                                                 // Create new booking (only if we have meaningful data or explicit intent)
                                                 // Ensure status defaults to pending if not in JSON
@@ -1420,10 +1423,13 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                                 if (!insertError && newBooking) {
                                                     console.log('✅ Created booking record from AI JSON');
 
-                                                    // Send new booking email (fire and forget)
-                                                    supabase.functions.invoke('send-booking-reminder-email', {
-                                                        body: { bookingId: newBooking.id, actionType: 'created' }
-                                                    }).catch(err => console.error('⚠️ Error sending new booking email:', err));
+                                                    // Only send email if the new booking is already confirmed
+                                                    if (wasConfirmed) {
+                                                        console.log('📧 New booking is confirmed, sending email notification');
+                                                        supabase.functions.invoke('send-booking-reminder-email', {
+                                                            body: { bookingId: newBooking.id, actionType: 'created' }
+                                                        }).catch(err => console.error('⚠️ Error sending new booking email:', err));
+                                                    }
                                                 } else if (insertError) {
                                                     console.error('❌ Error creating booking:', insertError);
                                                 }
