@@ -101,7 +101,7 @@ const Bookings = () => {
 
     useEffect(() => {
         filterBookings();
-    }, [bookings, searchQuery, filterType, filterStatus]);
+    }, [bookings, searchQuery, filterType, filterStatus, dateFilter]);
 
     const checkUser = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -163,11 +163,11 @@ const Bookings = () => {
             );
         }
 
-        // Filter by date
+        // Filter by date (using updated_at with fallback to created_at)
         const now = new Date();
         if (dateFilter !== "all") {
             filtered = filtered.filter((b) => {
-                const bookingDate = new Date(b.created_at || "");
+                const bookingDate = new Date(b.updated_at || b.created_at || "");
                 switch (dateFilter) {
                     case "today":
                         return bookingDate.toDateString() === now.toDateString();
@@ -183,10 +183,10 @@ const Bookings = () => {
             });
         }
 
-        // Sort by created_at in descending order (newest first)
+        // Sort by updated_at in descending order (most recently updated first)
         filtered.sort((a, b) => {
-            const dateA = new Date(a.created_at || 0).getTime();
-            const dateB = new Date(b.created_at || 0).getTime();
+            const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+            const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
             return dateB - dateA;
         });
 
@@ -395,7 +395,7 @@ const Bookings = () => {
                             </Button>
                         )}
                     </Card>
-                ) : (
+                ) : viewMode === "grid" ? (
                     <div className="space-y-4">
                         {filteredBookings.map((booking) => (
                             <Card key={booking.id} className="overflow-hidden">
@@ -710,6 +710,99 @@ const Bookings = () => {
                             </Card>
                         ))}
                     </div>
+                ) : (
+                    <Card className="overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-muted/50 border-b">
+                                    <tr>
+                                        <th className="text-left p-3 text-xs font-semibold">Customer</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Contact</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Type</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Status</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Date</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Platform</th>
+                                        <th className="text-left p-3 text-xs font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredBookings.map((booking) => (
+                                        <tr key={booking.id} className="border-b hover:bg-muted/30 transition-colors">
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-2">
+                                                    {getBookingTypeIcon(booking.booking_type)}
+                                                    <div>
+                                                        <div className="font-medium text-sm">
+                                                            {booking.customer_name || "Unknown"}
+                                                        </div>
+                                                        {booking.business_name && (
+                                                            <div className="text-[10px] text-muted-foreground">
+                                                                {booking.business_name}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="text-xs space-y-1">
+                                                    {booking.customer_phone && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Phone className="w-3 h-3 text-muted-foreground" />
+                                                            <span>{booking.customer_phone}</span>
+                                                        </div>
+                                                    )}
+                                                    {booking.customer_email && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Mail className="w-3 h-3 text-muted-foreground" />
+                                                            <span className="truncate max-w-[150px]">{booking.customer_email}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-3">
+                                                <Badge variant="outline" className="text-[10px] capitalize">
+                                                    {getBookingTypeLabel(booking.booking_type)}
+                                                </Badge>
+                                            </td>
+                                            <td className="p-3">
+                                                <Badge
+                                                    variant={
+                                                        booking.status === "confirmed"
+                                                            ? "default"
+                                                            : booking.status === "cancelled"
+                                                                ? "secondary"
+                                                                : "outline"
+                                                    }
+                                                    className="capitalize text-[10px]"
+                                                >
+                                                    {booking.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="p-3 text-xs text-muted-foreground">
+                                                {booking.created_at && new Date(booking.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="p-3">
+                                                <Badge variant="outline" className="text-[10px] capitalize">
+                                                    {booking.platform}
+                                                </Badge>
+                                            </td>
+                                            <td className="p-3">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 text-xs"
+                                                    onClick={() => navigate(`/messages?chat=${booking.customer_id}`)}
+                                                >
+                                                    <MessageSquare className="w-3 h-3 mr-1" />
+                                                    View
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 )}
             </div>
         </AppLayout>
