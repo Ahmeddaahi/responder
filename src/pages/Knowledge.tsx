@@ -451,13 +451,13 @@ const Knowledge = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 md:py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 sm:mb-10 md:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-12">
+            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">
               Configure Booking Assistant
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground px-4">
+            <p className="text-xs sm:text-base md:text-lg lg:text-xl text-muted-foreground px-2 sm:px-4">
               Provide your business name and customize the flow of questions for your AI assistant.
             </p>
           </div>
@@ -535,11 +535,11 @@ const Knowledge = () => {
               config && (
                 <Card className="p-4 sm:p-5 md:p-6 bg-gradient-card border-border">
                   <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessType(null)} className="gap-2">
-                        <ArrowLeft className="w-4 h-4" /> Back
+                    <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessType(null)} className="gap-2 shrink-0">
+                        <ArrowLeft className="w-4 h-4" /> <span className="hidden xs:inline">Back</span>
                       </Button>
-                      <Badge variant={config.is_active ? "default" : "outline"}>
+                      <Badge variant={config.is_active ? "default" : "outline"} className="shrink-0">
                         {config.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
@@ -547,17 +547,18 @@ const Knowledge = () => {
                     <div className="space-y-4">
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className="space-y-2">
-                          <Label htmlFor="business_name">Business Name *</Label>
+                          <Label htmlFor="business_name" className="text-sm">Business Name *</Label>
                           <Input
                             id="business_name"
                             placeholder="e.g. Grand Hotel"
                             value={config.business_name}
                             onChange={(e) => setConfig({ ...config, business_name: e.target.value })}
+                            className="h-10 text-sm"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="language" className="flex items-center gap-2">
+                          <Label htmlFor="language" className="flex items-center gap-2 text-sm">
                             <Languages className="w-4 h-4 text-primary" />
                             AI Assistant Language
                           </Label>
@@ -565,7 +566,7 @@ const Knowledge = () => {
                             value={config.language}
                             onValueChange={(val: "so" | "en") => setConfig({ ...config, language: val })}
                           >
-                            <SelectTrigger className="bg-background">
+                            <SelectTrigger className="bg-background h-10 text-sm">
                               <SelectValue placeholder="Select language" />
                             </SelectTrigger>
                             <SelectContent>
@@ -573,18 +574,18 @@ const Knowledge = () => {
                               <SelectItem value="en">English (EN)</SelectItem>
                             </SelectContent>
                           </Select>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            The AI will respond strictly in this language, regardless of customer input.
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                            The AI will respond strictly in this language.
                           </p>
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="currency">Currency</Label>
+                          <Label htmlFor="currency" className="text-sm">Currency</Label>
                           <Select
                             value={config.currency}
                             onValueChange={(val: string) => setConfig({ ...config, currency: val })}
                           >
-                            <SelectTrigger className="bg-background">
+                            <SelectTrigger className="bg-background h-10 text-sm">
                               <SelectValue placeholder="Select currency" />
                             </SelectTrigger>
                             <SelectContent>
@@ -598,8 +599,8 @@ const Knowledge = () => {
                               <SelectItem value="SAR">SAR - Saudi Riyal</SelectItem>
                             </SelectContent>
                           </Select>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Currency used for room prices and pricing information.
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                            Currency for room prices.
                           </p>
                         </div>
                       </div>
@@ -662,8 +663,8 @@ const Knowledge = () => {
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button onClick={saveConfiguration} disabled={loading} className="bg-gradient-primary">
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button onClick={saveConfiguration} disabled={loading} className="bg-gradient-primary w-full sm:w-auto h-11 sm:h-auto font-bold uppercase tracking-wider text-xs">
                         {knowledgeSaved ? "Update Flow" : "Save Flow"}
                       </Button>
                     </div>

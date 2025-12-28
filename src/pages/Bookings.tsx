@@ -277,24 +277,24 @@ const Bookings = () => {
             <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bookings</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl sm:text-4xl font-bold mb-2">Bookings</h1>
+                    <p className="text-xs sm:text-base text-muted-foreground">
                         View and manage all customer bookings collected by your AI assistant
                     </p>
                 </div>
 
                 {/* Filters and Search */}
                 <Card className="p-4 sm:p-6 mb-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         {/* Search */}
                         <div className="lg:col-span-2">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Search by name, phone or email..."
+                                    placeholder="Search bookings..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 h-10"
+                                    className="pl-9 h-10 text-sm"
                                 />
                             </div>
                         </div>
@@ -302,7 +302,7 @@ const Bookings = () => {
                         {/* Type Filter */}
                         <div className="w-full">
                             <Select value={filterType} onValueChange={setFilterType}>
-                                <SelectTrigger className="h-10">
+                                <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="All Types" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -318,7 +318,7 @@ const Bookings = () => {
                         {/* Date Filter */}
                         <div className="w-full">
                             <Select value={dateFilter} onValueChange={setDateFilter}>
-                                <SelectTrigger className="h-10">
+                                <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="Date Range" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -331,40 +331,40 @@ const Bookings = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-center mt-6 pt-6 border-t border-border/50 gap-4">
-                        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-xl self-start sm:self-auto">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border/50 gap-4">
+                        <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl w-full sm:w-auto">
                             <Button
                                 variant={viewMode === "grid" ? "default" : "ghost"}
                                 size="sm"
                                 onClick={() => setViewMode("grid")}
-                                className={`h-8 px-3 rounded-lg flex items-center gap-2 ${viewMode === "grid" ? "shadow-sm" : ""}`}
+                                className={`flex-1 sm:flex-none h-8 px-3 rounded-lg flex items-center justify-center gap-2 ${viewMode === "grid" ? "shadow-sm" : ""}`}
                             >
-                                <LayoutGrid className="w-4 h-4" />
-                                <span className="text-xs font-medium">Grid</span>
+                                <LayoutGrid className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-medium">Grid</span>
                             </Button>
                             <Button
                                 variant={viewMode === "table" ? "default" : "ghost"}
                                 size="sm"
                                 onClick={() => setViewMode("table")}
-                                className={`h-8 px-3 rounded-lg flex items-center gap-2 ${viewMode === "table" ? "shadow-sm" : ""}`}
+                                className={`flex-1 sm:flex-none h-8 px-3 rounded-lg flex items-center justify-center gap-2 ${viewMode === "table" ? "shadow-sm" : ""}`}
                             >
-                                <ListIcon className="w-4 h-4" />
-                                <span className="text-xs font-medium">Table</span>
+                                <ListIcon className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-medium">Table</span>
                             </Button>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                                 {filteredBookings.length} Result{filteredBookings.length !== 1 ? 's' : ''}
                             </span>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={downloadCSV}
-                                className="h-9 px-4 font-bold border-2 hover:bg-muted/50 transition-all"
+                                className="h-8 px-3 text-[11px] font-bold border-2 hover:bg-muted/50 transition-all"
                             >
-                                <Download className="w-4 h-4 mr-2" />
-                                Export CSV
+                                <Download className="w-3.5 h-3.5 mr-1.5" />
+                                Export
                             </Button>
                         </div>
                     </div>
@@ -423,24 +423,24 @@ const Bookings = () => {
                                                 </Badge>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                            <div className="flex flex-wrap items-center gap-2 mb-3">
                                                 {booking.customer_phone && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Phone className="w-4 h-4" />
+                                                    <div className="flex items-center gap-1.5 text-xs bg-muted/50 px-2 py-1 rounded-md">
+                                                        <Phone className="w-3 h-3 text-primary" />
                                                         <span>{booking.customer_phone}</span>
                                                     </div>
                                                 )}
                                                 {booking.customer_email && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Mail className="w-4 h-4" />
+                                                    <div className="flex items-center gap-1.5 text-xs bg-muted/50 px-2 py-1 rounded-md max-w-full overflow-hidden">
+                                                        <Mail className="w-3 h-3 text-primary" />
                                                         <span className="truncate">{booking.customer_email}</span>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant="outline" className="capitalize">
+                                                <div className="flex items-center gap-2 mt-1 w-full sm:w-auto">
+                                                    <Badge variant="outline" className="text-[10px] capitalize bg-background">
                                                         {getBookingTypeLabel(booking.booking_type)}
                                                     </Badge>
-                                                    <Badge variant="outline" className="capitalize">
+                                                    <Badge variant="outline" className="text-[10px] capitalize bg-background">
                                                         {booking.platform}
                                                     </Badge>
                                                 </div>

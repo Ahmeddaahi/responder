@@ -593,11 +593,11 @@ const Messages = () => {
         {/* Sidebar - User List */}
         <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-[350px] lg:w-[400px] flex-col border-r border-border bg-[hsl(var(--whatsapp-sidebar))] min-h-0`}>
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-border flex justify-between items-center bg-[hsl(var(--whatsapp-sidebar))]">
+          <div className="p-3 sm:p-4 border-b border-border flex justify-between items-center bg-[hsl(var(--whatsapp-sidebar))]">
             <h2 className="text-base sm:text-lg md:text-xl font-bold">Chats</h2>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <MoreVertical className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -605,10 +605,10 @@ const Messages = () => {
           {/* Search Bar */}
           <div className="p-3 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Search or start new chat"
-                className="pl-9 bg-muted/50 border-none focus-visible:ring-1"
+                placeholder="Search..."
+                className="pl-9 h-9 bg-muted/50 border-none focus-visible:ring-1 text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -813,15 +813,15 @@ const Messages = () => {
                         {msg.message_text && msg.message_text !== "[Manual Reply]" && (
                           <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-2 ml-1">
-                              <User className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">Customer</span>
+                              <User className="w-2.5 h-2.5 text-muted-foreground" />
+                              <span className="text-[10px] text-muted-foreground">Customer</span>
                             </div>
                             <div className="flex justify-start group w-full">
-                              <div className="max-w-[85%] sm:max-w-[75%] md:max-w-[70%] bg-[hsl(var(--whatsapp-received))] rounded-lg rounded-tl-none p-2 sm:p-3 shadow-sm relative">
-                                <p className="text-sm whitespace-pre-wrap break-words pr-8 sm:pr-12 pb-1 text-foreground">
+                              <div className="max-w-[90%] sm:max-w-[75%] md:max-w-[70%] bg-[hsl(var(--whatsapp-received))] rounded-lg rounded-tl-none p-2 sm:p-3 shadow-sm relative">
+                                <p className="text-[13px] sm:text-sm whitespace-pre-wrap break-words pr-8 sm:pr-12 pb-1 text-foreground">
                                   {msg.message_text}
                                 </p>
-                                <span className="text-[10px] text-muted-foreground absolute bottom-1 right-2">
+                                <span className="text-[9px] sm:text-[10px] text-muted-foreground absolute bottom-1 right-2">
                                   {formatMessageTime(msg.created_at)}
                                 </span>
                                 <Button
@@ -841,18 +841,18 @@ const Messages = () => {
                         {msg.ai_response && (
                           <div className="flex flex-col items-end gap-1">
                             <div className="flex items-center gap-2 mr-1">
-                              <span className="text-xs text-muted-foreground">AI Assistant</span>
-                              <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Bot className="w-3 h-3 text-primary" />
+                              <span className="text-[10px] text-muted-foreground">AI Assistant</span>
+                              <div className="w-3.5 h-3.5 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Bot className="w-2.5 h-2.5 text-primary" />
                               </div>
                             </div>
                             <div className="flex justify-end group w-full">
-                              <div className="max-w-[85%] sm:max-w-[75%] md:max-w-[70%] bg-[hsl(var(--whatsapp-sent))] rounded-lg rounded-tr-none p-2 sm:p-3 shadow-sm relative">
-                                <p className="text-sm whitespace-pre-wrap break-words pr-8 sm:pr-16 pb-1 text-foreground">
+                              <div className="max-w-[90%] sm:max-w-[75%] md:max-w-[70%] bg-[hsl(var(--whatsapp-sent))] rounded-lg rounded-tr-none p-2 sm:p-3 shadow-sm relative">
+                                <p className="text-[13px] sm:text-sm whitespace-pre-wrap break-words pr-8 sm:pr-16 pb-1 text-foreground">
                                   {msg.ai_response}
                                 </p>
                                 <div className="absolute bottom-1 right-2 flex items-center gap-1">
-                                  <span className="text-[10px] text-muted-foreground/80">
+                                  <span className="text-[9px] sm:text-[10px] text-muted-foreground/80">
                                     {formatMessageTime(msg.created_at)}
                                   </span>
                                   <CheckCheck className="h-3 w-3 text-blue-500" />
