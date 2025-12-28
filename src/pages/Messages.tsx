@@ -113,6 +113,29 @@ const formatConversationDate = (dateString: string | null) => {
   return date.toLocaleDateString();
 };
 
+// Clean AI response by removing JSON content
+const cleanAiResponse = (response: string): string => {
+  if (!response) return '';
+
+  // Remove everything after <|BOOKING_JSON|> marker (including the marker itself)
+  const bookingJsonIndex = response.indexOf('<|BOOKING_JSON|>');
+  if (bookingJsonIndex !== -1) {
+    response = response.substring(0, bookingJsonIndex);
+  }
+
+  // Also remove any standalone JSON objects and arrays
+  let cleaned = response
+    // Remove JSON objects: {...}
+    .replace(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
+    // Remove JSON arrays: [...]
+    .replace(/\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]/g, '')
+    // Remove extra whitespace and newlines
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned || response; // Return original if cleaning results in empty string
+};
+
 const Messages = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -661,7 +684,7 @@ const Messages = () => {
                         <div className="flex justify-between items-center">
                           <p className="text-xs text-muted-foreground truncate pr-2">
                             {lastMsg?.ai_response
-                              ? `You: ${lastMsg.ai_response.substring(0, 60)}${lastMsg.ai_response.length > 60 ? '...' : ''}`
+                              ? `You: ${cleanAiResponse(lastMsg.ai_response).substring(0, 60)}${cleanAiResponse(lastMsg.ai_response).length > 60 ? '...' : ''}`
                               : lastMsg?.message_text?.substring(0, 60) + (lastMsg?.message_text && lastMsg.message_text.length > 60 ? '...' : '') || 'No text'}
                           </p>
                         </div>
@@ -849,7 +872,7 @@ const Messages = () => {
                             <div className="flex justify-end group w-full">
                               <div className="max-w-[90%] sm:max-w-[75%] md:max-w-[70%] bg-[hsl(var(--whatsapp-sent))] rounded-lg rounded-tr-none p-2 sm:p-3 shadow-sm relative">
                                 <p className="text-[13px] sm:text-sm whitespace-pre-wrap break-words pr-8 sm:pr-16 pb-1 text-foreground">
-                                  {msg.ai_response}
+                                  {cleanAiResponse(msg.ai_response)}
                                 </p>
                                 <div className="absolute bottom-1 right-2 flex items-center gap-1">
                                   <span className="text-[9px] sm:text-[10px] text-muted-foreground/80">

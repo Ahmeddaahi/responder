@@ -183,6 +183,13 @@ const Bookings = () => {
             });
         }
 
+        // Sort by created_at in descending order (newest first)
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return dateB - dateA;
+        });
+
         setFilteredBookings(filtered);
     };
 
@@ -648,7 +655,8 @@ const Bookings = () => {
                                                                         'check_in_date', 'check_out_date', 'number_of_guests',
                                                                         'room_type', 'status', 'reservation_date', 'reservation_time',
                                                                         'number_of_people', 'table_preference', 'appointment_date',
-                                                                        'appointment_time', 'department', 'doctor_name', 'reason_for_visit'
+                                                                        'appointment_time', 'department', 'doctor_name', 'reason_for_visit',
+                                                                        'currency_clarification'
                                                                     ];
                                                                     const normalizedKey = key.toLowerCase().replace(/[\s_-]/g, '_');
                                                                     return !standardFields.includes(normalizedKey);
