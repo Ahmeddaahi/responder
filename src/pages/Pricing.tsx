@@ -1,16 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Check, TrendingUp, ArrowLeft, Phone, AlertCircle, ArrowUpRight, Zap, Rocket, Star, DollarSign, Coins } from "lucide-react";
+import { Check, TrendingUp, ArrowLeft, Phone, AlertCircle, ArrowUpRight, Zap, Rocket, Star, DollarSign, Coins, CalendarDays, Calendar } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { animate } from "framer-motion";
 
 type Plan = 'free' | 'starter' | 'enterprise' | 'custom';
 type UIPlan = 'free' | 'pro' | 'max' | 'ultra';
 
 import PaymentModal from "@/components/PaymentModal";
+
+const CountUp = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const prevValue = useRef(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const controls = animate(prevValue.current, value, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate(v) {
+        element.textContent = `${prefix}${Math.round(v)}${suffix}`;
+      },
+    });
+
+    prevValue.current = value;
+    return () => controls.stop();
+  }, [value, prefix, suffix]);
+
+  return <span ref={ref} />;
+};
+
 
 const Pricing = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +47,7 @@ const Pricing = () => {
 
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
   // Payment Modal State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -100,6 +126,13 @@ const Pricing = () => {
     // setCurrentPlan('free');
   };
 
+  const calculatePrice = (basePrice: number) => {
+    if (billingCycle === 'annually') {
+      return (basePrice * 10).toString(); // 2 months free equivalent
+    }
+    return basePrice.toString();
+  };
+
   const plans = [
     {
       id: "01",
@@ -133,7 +166,9 @@ const Pricing = () => {
       description: "Higher limits & premium features for growing businesses",
       subDescription: null,
       messages: "500 messages/month",
-      price: currency === 'USD' ? "5" : "1000",
+      price: currency === 'USD'
+        ? calculatePrice(5)
+        : calculatePrice(1000),
       priceMonthly: currency === 'USD' ? "$5 /mo" : "1000 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
@@ -158,7 +193,9 @@ const Pricing = () => {
       description: "Maximum power for established companies",
       subDescription: null,
       messages: "10,000 messages/month",
-      price: currency === 'USD' ? "25" : "5000",
+      price: currency === 'USD'
+        ? calculatePrice(25)
+        : calculatePrice(5000),
       priceMonthly: currency === 'USD' ? "$25 /mo" : "5000 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
@@ -268,7 +305,7 @@ const Pricing = () => {
         navigate("/settings");
       } else {
         // For paid plans, open payment modal
-        setSelectedPlanForPayment({ name: plan, price });
+        setSelectedPlanForPayment({ name: plan, price: `${price} ${billingCycle}` });
         setIsPaymentModalOpen(true);
       }
     } catch (error: any) {
@@ -327,27 +364,70 @@ const Pricing = () => {
         </div>
 
         <div className="flex flex-col items-center gap-6 mb-12">
-          <div className="flex bg-card/30 p-1.5 rounded-2xl border border-border/50 backdrop-blur-md shadow-lg">
-            <button
-              onClick={() => setCurrency('USD')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'USD' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
-            >
-              <DollarSign className={`w-4 h-4 transition-transform ${currency === 'USD' ? 'scale-110' : ''}`} />
-              USD
-            </button>
-            <button
-              onClick={() => setCurrency('ETB')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'ETB' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
-            >
-              <Coins className={`w-4 h-4 transition-transform ${currency === 'ETB' ? 'scale-110' : ''}`} />
-              ETB (Birr)
-            </button>
+          <div className="inline-flex flex-wrap justify-center items-center p-1.5 bg-muted/30 border border-border/50 rounded-full backdrop-blur-sm gap-2 sm:gap-4">
+
+            {/* Currency Toggle */}
+            <div className="flex items-center bg-background rounded-full p-1 shadow-sm border border-border/20">
+              <button
+                onClick={() => setCurrency('USD')}
+                className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'USD'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+              >
+                USD
+              </button>
+              <button
+                onClick={() => setCurrency('ETB')}
+                className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'ETB'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+              >
+                ETB (Birr)
+              </button>
+            </div>
+
+            {/* Separator - Hidden on very small screens if wrapping occurs */}
+            <div className="h-8 w-px bg-border/60 hidden sm:block" />
+
+            {/* Billing Toggle */}
+            <div className="flex items-center bg-background rounded-full p-1 shadow-sm border border-border/20">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'monthly'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('annually')}
+                className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'annually'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+              >
+                Yearly
+              </button>
+            </div>
+
+            {billingCycle === 'monthly' && (
+              <span className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                <Star className="w-3 h-3 fill-current" />
+                Save 20%
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground/80 bg-muted/20 px-4 py-1.5 rounded-full border border-border/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Pricing updated for {currency}
-          </div>
+          {/* Mobile Discount Badge */}
+          {billingCycle === 'monthly' && (
+            <span className="lg:hidden flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+              <Star className="w-3 h-3 fill-current" />
+              Save 20% with yearly
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
@@ -400,9 +480,18 @@ const Pricing = () => {
                     <div className="mb-6">
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-4xl font-bold text-foreground">
-                          {currency === 'USD' ? '$' : 'ETB '}{planItem.price}
+                          {!isNaN(Number(planItem.price)) ? (
+                            <CountUp
+                              value={Number(planItem.price)}
+                              prefix={currency === 'USD' ? '$' : 'ETB '}
+                            />
+                          ) : (
+                            <>
+                              {currency === 'USD' ? '$' : 'ETB '}{planItem.price}
+                            </>
+                          )}
                         </span>
-                        <span className="text-lg text-muted-foreground">/mo</span>
+                        <span className="text-lg text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">{planItem.priceAnnually}</p>
                     </div>
@@ -433,18 +522,17 @@ const Pricing = () => {
                       }`}
                     variant={planItem.isPopular ? "default" : "outline"}
                     onClick={() => {
-                      // Map plan to message limits based on database schema
                       const messageLimits: Record<string, number> = {
                         'Free Trial': 50,
                         'Starter': 500,
                         'Enterprise': 5000,
-                        'Custom': 10000 // Default for custom, can be edited by admin
+                        'Custom': 10000
                       };
                       const messageLimit = messageLimits[planItem.name] || 50;
+                      // Pass raw calculated price
                       const price = planItem.price || "0";
 
                       if (planItem.name === 'Custom') {
-                        // For custom plan, maybe redirect to a contact form or just show a message
                         toast({
                           title: "Contact Us",
                           description: "Please contact our team at team@resbonder.com for a custom plan.",
