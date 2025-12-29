@@ -158,7 +158,7 @@ const Pricing = () => {
       description: "Maximum power for established companies",
       subDescription: null,
       messages: "10,000 messages/month",
-      price: currency === 'USD' ? "25" : "9500",
+      price: currency === 'USD' ? "25" : "5000",
       priceMonthly: currency === 'USD' ? "$25 /mo" : "5000 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
