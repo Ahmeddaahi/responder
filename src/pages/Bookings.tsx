@@ -25,6 +25,7 @@ import {
     Download,
     LayoutGrid,
     List as ListIcon,
+    Trash2,
 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -36,6 +37,16 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CardSkeleton, PageHeaderSkeleton } from "@/components/ui/custom-skeletons";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Booking {
     id: string;
@@ -77,6 +88,7 @@ const Bookings = () => {
     const [dateFilter, setDateFilter] = useState("all");
     const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
     const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
+    const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -135,6 +147,34 @@ const Bookings = () => {
                 description: "Failed to load bookings",
                 variant: "destructive",
             });
+        }
+    };
+
+    const handleDeleteBooking = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from("bookings")
+                .delete()
+                .eq("id", id);
+
+            if (error) throw error;
+
+            toast({
+                title: "Success",
+                description: "Booking deleted successfully",
+            });
+
+            setBookings(bookings.filter((b) => b.id !== id));
+            setFilteredBookings(filteredBookings.filter((b) => b.id !== id));
+        } catch (error: any) {
+            console.error("Error deleting booking:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete booking",
+                variant: "destructive",
+            });
+        } finally {
+            setBookingToDelete(null);
         }
     };
 
@@ -467,6 +507,20 @@ const Bookings = () => {
                                 {/* Expanded Details */}
                                 {expandedBooking === booking.id && (
                                     <div className="border-t border-border p-4 sm:p-6 bg-muted/20">
+                                        <div className="flex justify-end mb-4">
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                className="h-8 text-xs"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setBookingToDelete(booking.id);
+                                                }}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5 mr-2" />
+                                                Delete Booking
+                                            </Button>
+                                        </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* Customer Information */}
                                             <div>
@@ -796,6 +850,14 @@ const Bookings = () => {
                                                     <MessageSquare className="w-3 h-3 mr-1" />
                                                     View
                                                 </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                    onClick={() => setBookingToDelete(booking.id)}
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -804,6 +866,27 @@ const Bookings = () => {
                         </div>
                     </Card>
                 )}
+
+                <AlertDialog open={!!bookingToDelete} onOpenChange={(open) => !open && setBookingToDelete(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the booking
+                                from the database.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={() => bookingToDelete && handleDeleteBooking(bookingToDelete)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </AppLayout>
     );
