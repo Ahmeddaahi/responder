@@ -159,7 +159,7 @@ const Pricing = () => {
       subDescription: null,
       messages: "10,000 messages/month",
       price: currency === 'USD' ? "25" : "9500",
-      priceMonthly: currency === 'USD' ? "$25 /mo" : "9500 ETB /mo",
+      priceMonthly: currency === 'USD' ? "$25 /mo" : "5000 ETB /mo",
       priceAnnually: null,
       buttonText: "Subscribe",
       buttonIcon: "Rocket",
