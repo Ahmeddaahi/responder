@@ -534,10 +534,8 @@ const Pricing = () => {
                       const price = planItem.price || "0";
 
                       if (planItem.name === 'Custom') {
-                        toast({
-                          title: "Contact Us",
-                          description: "Please contact our team at team@resbonder.com for a custom plan.",
-                        });
+                        const message = encodeURIComponent("Hello, I am interested in the Custom plan. / Asc, waxaan rabaa inaan faahfaahin ka helo qorshaha Custom-ka.");
+                        window.open(`https://wa.me/251995817222?text=${message}`, '_blank');
                         return;
                       }
 
