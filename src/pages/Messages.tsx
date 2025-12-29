@@ -13,7 +13,8 @@ import {
   CheckCheck,
   Ban,
   Send,
-  Zap
+  Zap,
+  Info
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import QuickReplies from "@/components/QuickReplies";
 import AppLayout from "@/components/AppLayout";
 import { TableSkeleton } from "@/components/ui/custom-skeletons";
@@ -617,7 +624,19 @@ const Messages = () => {
         <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-[350px] lg:w-[400px] flex-col border-r border-border bg-[hsl(var(--whatsapp-sidebar))] min-h-0`}>
           {/* Sidebar Header */}
           <div className="p-3 sm:p-4 border-b border-border flex justify-between items-center bg-[hsl(var(--whatsapp-sidebar))]">
-            <h2 className="text-base sm:text-lg md:text-xl font-bold">Chats</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg md:text-xl font-bold">Chats</h2>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground/70 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="w-[200px] text-xs font-normal">Spam, abusive, and off-topic messages are automatically filtered and do not appear here.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
                 <MoreVertical className="h-4 w-4" />

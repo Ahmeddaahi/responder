@@ -154,7 +154,8 @@ const Pricing = () => {
         "Standard AI assistant",
         "WhatsApp integration",
         "No custom fields",
-        "AI only (No human takeover)"
+        "AI only (No human takeover)",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
       isPopular: false
     },
@@ -181,7 +182,8 @@ const Pricing = () => {
         "Unlimited Custom Fields",
         "Manual replies (Human takeover)",
         "Priority Email support",
-        "Detailed dashboard metrics"
+        "Detailed dashboard metrics",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
       isPopular: true
     },
@@ -208,7 +210,8 @@ const Pricing = () => {
         "Unlimited Custom Fields",
         "Human takeover + Override",
         "Priority WhatsApp support",
-        "Multiple business setups"
+        "Multiple business setups",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
       isPopular: false
     },
@@ -234,7 +237,8 @@ const Pricing = () => {
         "Automated AI responses",
         "Manual replies (Human takeover)",
         "Dedicated account manager",
-        "Custom SLA guarantees"
+        "Custom SLA guarantees",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
       isPopular: false
     }

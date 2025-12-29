@@ -38,6 +38,10 @@ const Landing = () => {
     {
       question: "Is my business data secure?",
       answer: "Yes, security is our top priority. We use enterprise-grade encryption and follow industry best practices to protect your data. Your business information is stored securely and only used to train your AI chatbot responses."
+    },
+    {
+      question: "Do spam or off-topic messages count towards my limit?",
+      answer: "No. We have a smart filtering system that automatically detects and ignores spam, abusive language, and completely off-topic messages. These are filtered out and do NOT count towards your monthly message limit, so you only pay for valid business interactions."
     }
   ];
 
