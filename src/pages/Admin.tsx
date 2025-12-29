@@ -261,6 +261,10 @@ const Admin = () => {
         custom: 5,
       };
 
+      // Get billing cycle from payment request
+      const paymentRequest = paymentRequests.find(p => p.id === paymentId);
+      const billingCycle = paymentRequest?.billing_cycle || 'monthly';
+
       // Update payment request status
       const { error: paymentError } = await supabase
         .from('payment_requests')
@@ -283,6 +287,7 @@ const Admin = () => {
           bookings_limit: bookingLimits[requestedPlan] || 5,
           is_active: true,
           started_at: new Date().toISOString(),
+          billing_cycle: billingCycle
         })
         .eq('user_id', userId);
 

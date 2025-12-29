@@ -16,11 +16,12 @@ interface PaymentModalProps {
     onClose: () => void;
     planName: string;
     amount: string;
+    billingCycle?: 'monthly' | 'annually';
 }
 
 type PaymentMethod = 'ebirr' | 'zaad' | 'edahab' | 'crypto' | 'premierbank';
 
-const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) => {
+const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'monthly' }: PaymentModalProps) => {
     const [step, setStep] = useState<1 | 2>(1);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
     const [file, setFile] = useState<File | null>(null);
@@ -56,7 +57,10 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
 
             // Call Supabase Edge Function to create Cryptomus order
             const { data, error } = await supabase.functions.invoke('create-cryptomus-order', {
-                body: { plan_id: planName.toLowerCase() }
+                body: {
+                    plan_id: planName.toLowerCase(),
+                    billing_cycle: billingCycle
+                }
             });
 
             if (error) throw error;
@@ -263,6 +267,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount }: PaymentModalProps) 
                     current_plan: currentPlan,
                     payment_method: paymentMethod,
                     amount: parseFloat(amount),
+                    billing_cycle: billingCycle,
                     receipt_url: publicUrl,
                     payment_name: paymentName.trim(),
                     payment_phone: paymentPhone.trim(),

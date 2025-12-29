@@ -290,7 +290,8 @@ const Pricing = () => {
             plan,
             message_limit: messageLimit,
             is_active: true,
-            started_at: new Date().toISOString()
+            started_at: new Date().toISOString(),
+            billing_cycle: billingCycle
           }, {
             onConflict: 'user_id'
           });
@@ -371,8 +372,8 @@ const Pricing = () => {
               <button
                 onClick={() => setCurrency('USD')}
                 className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'USD'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
               >
                 USD
@@ -380,8 +381,8 @@ const Pricing = () => {
               <button
                 onClick={() => setCurrency('ETB')}
                 className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'ETB'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
               >
                 ETB (Birr)
@@ -396,8 +397,8 @@ const Pricing = () => {
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'monthly'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
               >
                 Monthly
@@ -405,8 +406,8 @@ const Pricing = () => {
               <button
                 onClick={() => setBillingCycle('annually')}
                 className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'annually'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
               >
                 Yearly
@@ -633,6 +634,7 @@ const Pricing = () => {
             onClose={() => setIsPaymentModalOpen(false)}
             planName={selectedPlanForPayment.name}
             amount={selectedPlanForPayment.price}
+            billingCycle={billingCycle}
           />
         )}
       </div>
