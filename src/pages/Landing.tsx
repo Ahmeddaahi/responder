@@ -15,6 +15,60 @@ const Landing = () => {
   const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
+  const faqs = [
+    {
+      question: "What is Resbonder?",
+      answer: "Resbonder is an AI-powered customer support and booking automation platform for WhatsApp. Upload your business knowledge, and our AI will handle customer questions and automated booking flows 24/7."
+    },
+    {
+      question: "How does the AI chatbot work?",
+      answer: "Our AI chatbot uses advanced natural language processing to understand customer questions and respond using your uploaded business data. Simply input text about your products and services, and the AI learns from this information to provide accurate, contextual responses."
+    },
+    {
+      question: "Which platforms does Resbonder support?",
+      answer: "Resbonder supports WhatsApp Business API. Our platform provides a seamless automated experience for your customers on WhatsApp."
+    },
+    {
+      question: "How much does Resbonder cost?",
+      answer: "We offer four plans: Free Trial, Starter ($5/month), Enterprise ($25/month), and Custom. Our Free Trial gives you a taste of AI automation with no credit card required."
+    },
+    {
+      question: "How quickly can I set up my AI chatbot?",
+      answer: "Setup takes just minutes! After signing up, upload your business data (text information or products), connect your WhatsApp Business API, and you're ready to go. Your AI chatbot will start responding to customer inquiries immediately."
+    },
+    {
+      question: "Is my business data secure?",
+      answer: "Yes, security is our top priority. We use enterprise-grade encryption and follow industry best practices to protect your data. Your business information is stored securely and only used to train your AI chatbot responses."
+    },
+    {
+      question: "Do spam or off-topic messages count towards my limit?",
+      answer: "No. We have a smart filtering system that automatically detects and ignores spam, abusive language, and completely off-topic messages. These are filtered out and do NOT count towards your monthly message limit, so you only pay for valid business interactions."
+    }
+  ];
+
+  const features = [
+    {
+      icon: Bot,
+      title: "AI-Powered Chat",
+      description: "Advanced AI agent that understands your business and responds intelligently using your data"
+    },
+    {
+      icon: Zap,
+      title: "Automated Bookings",
+      description: "Let AI handle your reservation and booking flows automatically on WhatsApp"
+    },
+    {
+      icon: MessageSquare,
+      title: "Human Takeover",
+      description: "Seamlessly jump into any conversation when manual intervention is needed"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security with 99.9% uptime for your business automation"
+    }
+  ];
+
   const calculatePrice = (basePrice: number) => {
     if (billingCycle === 'annually') {
       return (basePrice * 10).toString(); // 2 months free equivalent
