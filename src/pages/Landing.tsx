@@ -12,6 +12,7 @@ import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
 const Landing = () => {
   const navigate = useNavigate();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
   const calculatePrice = (basePrice: number) => {
