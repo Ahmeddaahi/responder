@@ -12,62 +12,14 @@ import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
 const Landing = () => {
   const navigate = useNavigate();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
-  const faqs = [
-    {
-      question: "What is Resbonder?",
-      answer: "Resbonder is an AI-powered customer support and booking automation platform for WhatsApp. Upload your business knowledge, and our AI will handle customer questions and automated booking flows 24/7."
-    },
-    {
-      question: "How does the AI chatbot work?",
-      answer: "Our AI chatbot uses advanced natural language processing to understand customer questions and respond using your uploaded business data. Simply input text about your products and services, and the AI learns from this information to provide accurate, contextual responses."
-    },
-    {
-      question: "Which platforms does Resbonder support?",
-      answer: "Resbonder supports WhatsApp Business API. Our platform provides a seamless automated experience for your customers on WhatsApp."
-    },
-    {
-      question: "How much does Resbonder cost?",
-      answer: "We offer four plans: Free Trial, Starter ($5/month), Enterprise ($25/month), and Custom. Our Free Trial gives you a taste of AI automation with no credit card required."
-    },
-    {
-      question: "How quickly can I set up my AI chatbot?",
-      answer: "Setup takes just minutes! After signing up, upload your business data (text information or products), connect your WhatsApp Business API, and you're ready to go. Your AI chatbot will start responding to customer inquiries immediately."
-    },
-    {
-      question: "Is my business data secure?",
-      answer: "Yes, security is our top priority. We use enterprise-grade encryption and follow industry best practices to protect your data. Your business information is stored securely and only used to train your AI chatbot responses."
-    },
-    {
-      question: "Do spam or off-topic messages count towards my limit?",
-      answer: "No. We have a smart filtering system that automatically detects and ignores spam, abusive language, and completely off-topic messages. These are filtered out and do NOT count towards your monthly message limit, so you only pay for valid business interactions."
+  const calculatePrice = (basePrice: number) => {
+    if (billingCycle === 'annually') {
+      return (basePrice * 10).toString(); // 2 months free equivalent
     }
-  ];
-
-
-  const features = [
-    {
-      icon: Bot,
-      title: "AI-Powered Chat",
-      description: "Advanced AI agent that understands your business and responds intelligently using your data"
-    },
-    {
-      icon: Zap,
-      title: "Automated Bookings",
-      description: "Let AI handle your reservation and booking flows automatically on WhatsApp"
-    },
-    {
-      icon: MessageSquare,
-      title: "Human Takeover",
-      description: "Seamlessly jump into any conversation when manual intervention is needed"
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Enterprise-grade security with 99.9% uptime for your business automation"
-    }
-  ];
+    return basePrice.toString();
+  };
 
   const plans = [
     {
@@ -75,41 +27,45 @@ const Landing = () => {
       messages: "50 total",
       price: "0",
       features: [
-        "50 messages total (one-time)",
-        "3 knowledge items",
-        "10 products",
-        "1,000 chars per item",
-        "WhatsApp & AI",
-        "Manual replies",
-        "Community support"
+        "50 messages total (One-time)",
+        "5 Bookings included",
+        "2 Room/Service types",
+        "Standard AI assistant",
+        "WhatsApp integration",
+        "No custom fields",
+        "AI only (No human takeover)"
       ]
     },
     {
-      name: "Starter",
+      name: "Pro",
       messages: "500",
-      price: currency === 'USD' ? "5" : "1000",
+      price: currency === 'USD'
+        ? calculatePrice(5)
+        : calculatePrice(1000),
       features: [
         "500 messages per month",
-        "5 knowledge items",
-        "50 products",
-        "2,000 chars per item",
-        "WhatsApp & AI",
-        "Manual replies",
-        "Basic metrics"
+        "50 Bookings included",
+        "10 Room/Service types",
+        "Advanced AI assistant",
+        "Unlimited Custom Fields",
+        "Manual replies (Human takeover)",
+        "Priority Email support"
       ]
     },
     {
-      name: "Enterprise",
+      name: "Business",
       messages: "5000",
-      price: currency === 'USD' ? "25" : "9500",
+      price: currency === 'USD'
+        ? calculatePrice(25)
+        : calculatePrice(5000),
       features: [
         "5,000 messages per month",
-        "Unlimited knowledge items",
-        "Unlimited products",
-        "3,000 chars per item",
-        "WhatsApp & AI",
-        "Manual replies",
-        "Dedicated support"
+        "Unlimited Bookings",
+        "Unlimited Room/Service types",
+        "Premium AI (GPT-4o level)",
+        "Unlimited Custom Fields",
+        "Human takeover + Override",
+        "Priority WhatsApp support"
       ]
     },
     {
@@ -117,13 +73,13 @@ const Landing = () => {
       messages: "Custom",
       price: "?",
       features: [
-        "Custom messages",
+        "Custom messages per month",
         "Custom knowledge limits",
         "Custom product limits",
-        "5,000 chars per item",
-        "WhatsApp & AI",
-        "Manual replies",
-        "SLA guarantees"
+        "5,000 characters per item",
+        "WhatsApp integration",
+        "Automated AI responses",
+        "Manual replies (Human takeover)"
       ]
     }
   ];
@@ -308,21 +264,51 @@ const Landing = () => {
             </div>
 
             <div className="flex flex-col items-center gap-6 mb-12">
-              <div className="flex bg-card/30 p-1.5 rounded-2xl border border-border/50 backdrop-blur-md shadow-lg">
-                <button
-                  onClick={() => setCurrency('USD')}
-                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'USD' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
-                >
-                  <DollarSign className={`w-4 h-4 transition-transform ${currency === 'USD' ? 'scale-110' : ''}`} />
-                  USD
-                </button>
-                <button
-                  onClick={() => setCurrency('ETB')}
-                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currency === 'ETB' ? 'bg-primary text-white shadow-glow-sm scale-105' : 'text-muted-foreground hover:bg-white/5'}`}
-                >
-                  <Coins className={`w-4 h-4 transition-transform ${currency === 'ETB' ? 'scale-110' : ''}`} />
-                  ETB (Birr)
-                </button>
+              <div className="inline-flex flex-wrap justify-center items-center p-1.5 bg-muted/30 border border-border/50 rounded-full backdrop-blur-sm gap-2 sm:gap-4">
+
+                {/* Currency Toggle */}
+                <div className="flex items-center bg-background rounded-full p-1 shadow-sm border border-border/20">
+                  <button
+                    onClick={() => setCurrency('USD')}
+                    className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'USD'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
+                  >
+                    USD
+                  </button>
+                  <button
+                    onClick={() => setCurrency('ETB')}
+                    className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${currency === 'ETB'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
+                  >
+                    ETB (Birr)
+                  </button>
+                </div>
+
+                {/* Billing Toggle */}
+                <div className="flex items-center bg-background rounded-full p-1 shadow-sm border border-border/20">
+                  <button
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'monthly'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBillingCycle('annually')}
+                    className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billingCycle === 'annually'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
+                  >
+                    Yearly
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -340,12 +326,14 @@ const Landing = () => {
                       <span className="text-4xl sm:text-5xl font-bold">
                         {plan.name === 'Custom' ? 'Contact' : (plan.price === '0' ? 'Free' : (currency === 'USD' ? '$' : 'ETB ') + plan.price)}
                       </span>
-                      <span className="text-muted-foreground">{plan.name === 'Custom' || plan.name === 'Free Trial' ? '' : '/month'}</span>
+                      <span className="text-muted-foreground">
+                        {plan.name === 'Custom' || plan.name === 'Free Trial' ? '' : (billingCycle === 'monthly' ? '/mo' : '/yr')}
+                      </span>
                     </div>
                     <div className="mb-4 sm:mb-6">
                       <div className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                         <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" />
-                        {plan.messages === 'Custom' ? 'Tailored message limits' : `${plan.messages} messages/month`}
+                        {plan.messages === 'Custom' ? 'Tailored message limits' : `${plan.messages} messages${plan.name === 'Free Trial' ? '' : (billingCycle === 'monthly' ? '/mo' : '/mo')}`}
                       </div>
                       <ul className="space-y-2 sm:space-y-3">
                         {plan.features.map((feature, i) => (
@@ -356,13 +344,26 @@ const Landing = () => {
                         ))}
                       </ul>
                     </div>
-                    <Button
-                      className={`w-full transition-all ${index === 1 ? 'bg-gradient-primary hover:opacity-90' : ''}`}
-                      variant={index === 1 ? 'default' : 'outline'}
-                      onClick={() => navigate('/auth?mode=signup')}
-                    >
-                      Get Started
-                    </Button>
+                    {plan.name === 'Custom' ? (
+                      <Button
+                        className={`w-full transition-all`}
+                        variant={'outline'}
+                        onClick={() => {
+                          const message = encodeURIComponent("Hello, I am interested in the Custom plan. / Asc, waxaan rabaa inaan faahfaahin ka helo qorshaha Custom-ka.");
+                          window.open(`https://wa.me/251995817222?text=${message}`, '_blank');
+                        }}
+                      >
+                        Contact Us
+                      </Button>
+                    ) : (
+                      <Button
+                        className={`w-full transition-all ${index === 1 ? 'bg-gradient-primary hover:opacity-90' : ''}`}
+                        variant={index === 1 ? 'default' : 'outline'}
+                        onClick={() => navigate('/auth?mode=signup')}
+                      >
+                        Get Started
+                      </Button>
+                    )}
                   </Card>
                 </ScaleIn>
               ))}
