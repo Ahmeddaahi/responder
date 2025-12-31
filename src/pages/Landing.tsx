@@ -43,6 +43,18 @@ const Landing = () => {
     {
       question: "Do spam or off-topic messages count towards my limit?",
       answer: "No. We have a smart filtering system that automatically detects and ignores spam, abusive language, and completely off-topic messages. These are filtered out and do NOT count towards your monthly message limit, so you only pay for valid business interactions."
+    },
+    {
+      question: "Does your AI support Somali language?",
+      answer: "Yes! We're the only WhatsApp AI platform with native Somali language support. You can configure your AI to respond in either Somali (Soomaali) or English. Simply select your preferred language in the settings, and your AI will consistently respond in that language. This makes us perfect for businesses in Somalia, Somaliland, Djibouti, and the Ethiopian Somali Region."
+    },
+    {
+      question: "Can I choose which language my AI uses?",
+      answer: "Absolutely! You have full control over your AI's language. In your dashboard settings, you can select either Somali or English as your AI's response language. Once configured, your AI will consistently respond in your chosen language, ensuring a consistent experience for your customers."
+    },
+    {
+      question: "Can I change the AI language after setup?",
+      answer: "Yes! You can change your AI's language at any time from your dashboard settings. Simply select your preferred language (Somali or English), save your configuration, and your AI will immediately start responding in the new language. This flexibility allows you to adapt to your customer base."
     }
   ];
 
@@ -66,6 +78,11 @@ const Landing = () => {
       icon: Shield,
       title: "Secure & Reliable",
       description: "Enterprise-grade security with 99.9% uptime for your business automation"
+    },
+    {
+      icon: TrendingUp,
+      title: "Native Somali Support 🇸🇴",
+      description: "Choose your AI language - Somali or English. Serve customers in their preferred language with cultural context awareness"
     }
   ];
 
@@ -85,6 +102,7 @@ const Landing = () => {
         "50 messages total (One-time)",
         "5 Bookings included",
         "2 Room/Service types",
+        "🇸🇴 Somali + English AI",
         "Standard AI assistant",
         "WhatsApp integration",
         "No custom fields",
@@ -101,6 +119,8 @@ const Landing = () => {
         "500 messages per month",
         "50 Bookings included",
         "10 Room/Service types",
+        "🇸🇴 Somali or English AI",
+        "Choose your AI language",
         "Advanced AI assistant",
         "Unlimited Custom Fields",
         "Manual replies (Human takeover)",
@@ -117,6 +137,8 @@ const Landing = () => {
         "5,000 messages per month",
         "Unlimited Bookings",
         "Unlimited Room/Service types",
+        "🇸🇴 Somali + English AI (Premium)",
+        "Cultural context awareness",
         "Premium AI (GPT-4o level)",
         "Unlimited Custom Fields",
         "Human takeover + Override",
@@ -212,7 +234,7 @@ const Landing = () => {
 
       <main>
         {/* Hero Section */}
-        <section className="relative py-20 md:py-32 lg:py-40 overflow-hidden" aria-label="Hero section">
+        <section className="relative py-12 md:py-16 lg:py-20 overflow-hidden" aria-label="Hero section">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background/50"></div>
           {/* Decorative Platform Icons - Desktop only in hero */}
           <div className="hidden md:block">
@@ -220,6 +242,17 @@ const Landing = () => {
           </div>
           <div className="container mx-auto px-4 text-center relative z-10">
             <div className="max-w-5xl mx-auto">
+              {/* Language Support Badge */}
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-full backdrop-blur-sm">
+                  <span className="text-2xl">🇸🇴</span>
+                  <span className="text-sm font-semibold text-foreground">Somali</span>
+                  <span className="text-muted-foreground">+</span>
+                  <span className="text-2xl">🇬🇧</span>
+                  <span className="text-sm font-semibold text-foreground">English</span>
+                  <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Native Support</span>
+                </div>
+              </div>
               <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight">
                 <SplitText
                   text="Your AI Business Agent"
@@ -250,8 +283,11 @@ const Landing = () => {
                   textAlign="center"
                 />
               </div>
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
-                Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 on WhatsApp. Experience seamless customer support with AI and human takeover.
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
+                The only WhatsApp AI with <span className="text-primary font-semibold">native Somali language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali or English.
+              </p>
+              <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 sm:mb-10 max-w-2xl mx-auto">
+                Built for Horn of Africa businesses • Choose your AI language • Cultural context awareness
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -290,7 +326,7 @@ const Landing = () => {
                 </p>
               </SlideUp>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
               {features.map((feature, index) => (
                 <SlideUp key={index} delay={0.1 * index}>
                   <article className="p-6 sm:p-8 bg-card border-border/50 hover:shadow-lg hover:border-primary/30 transition-all duration-300 h-full group rounded-lg border">
@@ -302,6 +338,174 @@ const Landing = () => {
                   </article>
                 </SlideUp>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Language Support Showcase Section */}
+        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-b from-background to-muted/20 overflow-hidden" aria-label="Language Support">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12 sm:mb-16">
+              <SlideUp>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-4">
+                  <span className="text-2xl">🇸🇴</span>
+                  <span className="text-sm font-semibold text-primary">Native Somali Language AI</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">
+                  The Only WhatsApp AI Built for Somali Speakers
+                </h2>
+                <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+                  Choose your AI language - Somali or English. Serve your customers with culturally-aware responses in their preferred language
+                </p>
+              </SlideUp>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto mb-12">
+              {/* Conversation Example */}
+              <SlideInLeft>
+                <Card className="p-6 sm:p-8 bg-card border-border/50 h-full">
+                  <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    Bilingual Conversations
+                  </h3>
+                  <div className="space-y-4">
+                    {/* Customer message in Somali */}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        👤
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-muted/50 rounded-lg p-3">
+                          <p className="text-sm">Qolka hotel-ka imisa ayuu yahay?</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">🇸🇴 Detected: Somali</p>
+                      </div>
+                    </div>
+                    {/* AI response in Somali */}
+                    <div className="flex gap-3 justify-end">
+                      <div className="flex-1 text-right">
+                        <div className="bg-primary/10 rounded-lg p-3 inline-block">
+                          <p className="text-sm">Mahadsanid su'aashaada! Qolalkeena waxay bilaabmaan $50 habeenkii. Miyaad rabtaa inaad qol booqato?</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">🤖 AI Response: Somali</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        🤖
+                      </div>
+                    </div>
+                    {/* Customer switches to English */}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        👤
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-muted/50 rounded-lg p-3">
+                          <p className="text-sm">Yes, I want to book for 2 nights</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">🇬🇧 Detected: English</p>
+                      </div>
+                    </div>
+                    {/* AI responds in English */}
+                    <div className="flex gap-3 justify-end">
+                      <div className="flex-1 text-right">
+                        <div className="bg-primary/10 rounded-lg p-3 inline-block">
+                          <p className="text-sm">Perfect! I'll help you book for 2 nights. What dates would you like?</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">🤖 AI Response: English</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        🤖
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </SlideInLeft>
+
+              {/* Key Benefits */}
+              <SlideInRight>
+                <div className="space-y-6">
+                  <Card className="p-6 bg-card border-border/50 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Zap className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Choose Your AI Language</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Select whether your AI responds in Somali or English. Configure your preferred language in settings
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-card border-border/50 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-6 h-6 text-accent" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Cultural Context Awareness</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Trained on Somali business terminology and cultural nuances for natural, respectful conversations
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-card border-border/50 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp className="w-6 h-6 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Built for Horn of Africa</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Designed specifically for businesses in Somalia, Somaliland, Djibouti, and Ethiopian Somali Region
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-gradient-primary text-white border-0 hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">No Competitor Has This</h4>
+                        <p className="text-sm opacity-90">
+                          We're the only WhatsApp AI platform with native Somali language support. Your competitive advantage starts here.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </SlideInRight>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <ScaleIn delay={0.1}>
+                <Card className="p-6 text-center bg-card border-border/50">
+                  <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">2</div>
+                  <p className="text-sm text-muted-foreground">Languages Supported</p>
+                  <p className="text-xs text-muted-foreground mt-1">Somali + English</p>
+                </Card>
+              </ScaleIn>
+              <ScaleIn delay={0.2}>
+                <Card className="p-6 text-center bg-card border-border/50">
+                  <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">95%+</div>
+                  <p className="text-sm text-muted-foreground">Detection Accuracy</p>
+                  <p className="text-xs text-muted-foreground mt-1">Automatic language detection</p>
+                </Card>
+              </ScaleIn>
+              <ScaleIn delay={0.3}>
+                <Card className="p-6 text-center bg-card border-border/50">
+                  <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">24/7</div>
+                  <p className="text-sm text-muted-foreground">Bilingual Support</p>
+                  <p className="text-xs text-muted-foreground mt-1">Always available in both languages</p>
+                </Card>
+              </ScaleIn>
             </div>
           </div>
         </section>

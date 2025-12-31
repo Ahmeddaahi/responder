@@ -558,25 +558,48 @@ const Knowledge = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="language" className="flex items-center gap-2 text-sm">
-                            <Languages className="w-4 h-4 text-primary" />
+                          <Label htmlFor="language" className="flex items-center gap-2 text-base font-semibold">
+                            <Languages className="w-5 h-5 text-primary" />
                             AI Assistant Language
+                            <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Key Feature</span>
                           </Label>
                           <Select
                             value={config.language}
                             onValueChange={(val: "so" | "en") => setConfig({ ...config, language: val })}
                           >
-                            <SelectTrigger className="bg-background h-10 text-sm">
+                            <SelectTrigger className="bg-background h-12 text-base border-2 border-primary/30 hover:border-primary/50 transition-colors">
                               <SelectValue placeholder="Select language" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="so">Somali (SO)</SelectItem>
-                              <SelectItem value="en">English (EN)</SelectItem>
+                              <SelectItem value="so" className="text-base py-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">🇸🇴</span>
+                                  <div>
+                                    <div className="font-semibold">Somali (Soomaali)</div>
+                                    <div className="text-xs text-muted-foreground">Native Somali language AI</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="en" className="text-base py-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">🇬🇧</span>
+                                  <div>
+                                    <div className="font-semibold">English</div>
+                                    <div className="text-xs text-muted-foreground">International English</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                            The AI will respond strictly in this language.
-                          </p>
+                          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-2">
+                            <p className="text-xs text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-0.5">ℹ️</span>
+                              <span>
+                                The AI will <strong>strictly respond</strong> in {config.language === 'so' ? 'Somali' : 'English'}.
+                                Customers can write in any language, but responses will always be in your selected language.
+                              </span>
+                            </p>
+                          </div>
                         </div>
 
                         <div className="space-y-2">
