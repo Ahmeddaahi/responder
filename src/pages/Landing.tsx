@@ -1,13 +1,37 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone, DollarSign, Coins } from "lucide-react";
+import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone, DollarSign, Coins, Star, Rocket, ArrowUpRight, AlertCircle } from "lucide-react";
+import { animate } from "framer-motion";
 import SplitText from "@/components/SplitText";
 import { Footer } from "@/components/ui/footer-section";
 import { FadeIn, SlideUp, SlideInLeft, SlideInRight, ScaleIn } from "@/components/ui/animate-on-scroll";
 import { supabase } from "@/integrations/supabase/client";
 import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
+
+const CountUp = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const prevValue = useRef(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const controls = animate(prevValue.current, value, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate(v) {
+        element.textContent = `${prefix}${Math.round(v)}${suffix}`;
+      },
+    });
+
+    prevValue.current = value;
+    return () => controls.stop();
+  }, [value, prefix, suffix]);
+
+  return <span ref={ref} />;
+};
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -86,6 +110,16 @@ const Landing = () => {
     }
   ];
 
+  const getButtonIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'ArrowUpRight': return <ArrowUpRight className="w-4 h-4" />;
+      case 'Zap': return <Zap className="w-4 h-4" />;
+      case 'Rocket': return <Rocket className="w-4 h-4" />;
+      case 'Phone': return <Phone className="w-4 h-4" />;
+      default: return null;
+    }
+  };
+
   const calculatePrice = (basePrice: number) => {
     if (billingCycle === 'annually') {
       return (basePrice * 10).toString(); // 2 months free equivalent
@@ -95,9 +129,15 @@ const Landing = () => {
 
   const plans = [
     {
+      id: "01",
       name: "Free Trial",
+      subName: "Try for 30 days",
+      description: "One-time trial for new users to test our AI assistant",
+      subDescription: "No credit card required.",
       messages: "50 total",
       price: "0",
+      buttonText: "Get Started",
+      buttonIcon: "ArrowUpRight",
       features: [
         "50 messages total (One-time)",
         "5 Bookings included",
@@ -106,15 +146,23 @@ const Landing = () => {
         "Standard AI assistant",
         "WhatsApp integration",
         "No custom fields",
-        "AI only (No human takeover)"
-      ]
+        "AI only (No human takeover)",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
+      ],
+      isPopular: false
     },
     {
+      id: "02",
       name: "Pro",
+      subName: null,
+      description: "Higher limits & premium features for growing businesses",
+      subDescription: null,
       messages: "500",
       price: currency === 'USD'
         ? calculatePrice(5)
         : calculatePrice(1000),
+      buttonText: "Subscribe",
+      buttonIcon: "Zap",
       features: [
         "500 messages per month",
         "50 Bookings included",
@@ -124,15 +172,24 @@ const Landing = () => {
         "Advanced AI assistant",
         "Unlimited Custom Fields",
         "Manual replies (Human takeover)",
-        "Priority Email support"
-      ]
+        "Priority Email support",
+        "Detailed dashboard metrics",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
+      ],
+      isPopular: true
     },
     {
+      id: "03",
       name: "Business",
+      subName: null,
+      description: "Maximum power for established companies",
+      subDescription: null,
       messages: "5000",
       price: currency === 'USD'
         ? calculatePrice(25)
         : calculatePrice(5000),
+      buttonText: "Subscribe",
+      buttonIcon: "Rocket",
       features: [
         "5,000 messages per month",
         "Unlimited Bookings",
@@ -142,13 +199,22 @@ const Landing = () => {
         "Premium AI (GPT-4o level)",
         "Unlimited Custom Fields",
         "Human takeover + Override",
-        "Priority WhatsApp support"
-      ]
+        "Priority WhatsApp support",
+        "Multiple business setups",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
+      ],
+      isPopular: false
     },
     {
+      id: "04",
       name: "Custom",
-      messages: "Custom",
+      subName: "Tailored for your needs",
+      description: "Custom limits and dedicated solutions for enterprise scale",
+      subDescription: "Specialized features.",
+      messages: "Custom messages/month",
       price: "?",
+      buttonText: "Contact Us",
+      buttonIcon: "Phone",
       features: [
         "Custom messages per month",
         "Custom knowledge limits",
@@ -156,8 +222,11 @@ const Landing = () => {
         "5,000 characters per item",
         "WhatsApp integration",
         "Automated AI responses",
-        "Manual replies (Human takeover)"
-      ]
+        "Manual replies (Human takeover)",
+        "Dedicated account manager",
+        "Spam, Abuse & Unrelated massges (Not Counted)"
+      ],
+      isPopular: false
     }
   ];
 
@@ -571,58 +640,107 @@ const Landing = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-7xl mx-auto px-4">
               {plans.map((plan, index) => (
                 <ScaleIn key={index} delay={0.1 * index}>
-                  <Card className={`p-6 sm:p-7 md:p-8 bg-gradient-card border-border transition-all duration-300 hover:shadow-lg ${index === 1 ? 'ring-2 ring-primary shadow-glow md:scale-105' : 'hover:scale-[1.02]'}`}>
-                    {index === 1 && (
-                      <div className="bg-gradient-primary text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                        Most Popular
+                  <Card className={`relative p-8 bg-card border-border/50 transition-all duration-300 ${plan.isPopular
+                    ? 'ring-2 ring-primary/50 shadow-glow lg:scale-105'
+                    : 'hover:shadow-lg hover:border-primary/30'
+                    }`}>
+                    {/* Plan Number */}
+                    <div className="absolute top-6 left-6 text-2xl font-bold text-muted-foreground/30">
+                      {plan.id}
+                    </div>
+
+                    {/* Most Popular Badge */}
+                    {plan.isPopular && (
+                      <div className="absolute top-6 right-6">
+                        <div className="bg-primary/20 text-primary text-xs font-semibold px-3 py-1 rounded-full border border-primary/30 flex items-center gap-1.5">
+                          <Star className="w-3 h-3 fill-current" />
+                          Most popular
+                        </div>
                       </div>
                     )}
-                    <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
-                    <div className="mb-4 sm:mb-6">
-                      <span className="text-4xl sm:text-5xl font-bold">
-                        {plan.name === 'Custom' ? 'Contact' : (plan.price === '0' ? 'Free' : (currency === 'USD' ? '$' : 'ETB ') + plan.price)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {plan.name === 'Custom' || plan.name === 'Free Trial' ? '' : (billingCycle === 'monthly' ? '/mo' : '/yr')}
-                      </span>
-                    </div>
-                    <div className="mb-4 sm:mb-6">
-                      <div className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" />
-                        {plan.messages === 'Custom' ? 'Tailored message limits' : `${plan.messages} messages${plan.name === 'Free Trial' ? '' : (billingCycle === 'monthly' ? '/mo' : '/mo')}`}
+
+                    <div className="mt-8">
+                      {/* Plan Name */}
+                      <div className="mb-2">
+                        <h3 className="text-2xl font-bold text-foreground">{plan.name}</h3>
+                        {plan.subName && (
+                          <p className="text-lg font-semibold text-foreground mt-1">{plan.subName}</p>
+                        )}
                       </div>
-                      <ul className="space-y-2 sm:space-y-3">
-                        {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm sm:text-base">
-                            <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent mt-0.5 flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {plan.name === 'Custom' ? (
+
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                        {plan.description}
+                      </p>
+                      {plan.subDescription && (
+                        <p className="text-sm text-muted-foreground/80 mb-6">{plan.subDescription}</p>
+                      )}
+
+                      {/* Pricing */}
+                      <div className="mb-6">
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-4xl font-bold text-foreground">
+                            {plan.name === 'Custom' ? (
+                              'Contact'
+                            ) : plan.price === '0' ? (
+                              'Free'
+                            ) : (
+                              <CountUp
+                                value={Number(plan.price)}
+                                prefix={currency === 'USD' ? '$' : 'ETB '}
+                              />
+                            )}
+                          </span>
+                          {plan.name !== 'Custom' && plan.name !== 'Free Trial' && (
+                            <span className="text-lg text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Messages Limit */}
+                      <div className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                        {plan.messages === 'Custom' ? 'Tailored message limits' : `${plan.messages} messages/month`}
+                      </div>
+
+                      {/* Features */}
+                      <div className="mb-8">
+                        <p className="text-xs font-semibold text-muted-foreground mb-4 uppercase tracking-wider">
+                          {index === 0 ? "Includes:" : index === 1 ? "Everything in Free, plus:" : "Everything in Starter, plus:"}
+                        </p>
+                        <ul className="space-y-3">
+                          {plan.features.map((feature, i) => (
+                            <li key={i} className="flex items-start gap-3 text-sm text-foreground/90">
+                              <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                              <span className="leading-relaxed">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* CTA Button */}
                       <Button
-                        className={`w-full transition-all`}
-                        variant={'outline'}
+                        className={`w-full rounded-full ${plan.isPopular
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg'
+                          : 'bg-foreground/5 hover:bg-foreground/10 text-foreground border border-border hover:border-primary/50'
+                          }`}
+                        variant={plan.isPopular ? "default" : "outline"}
                         onClick={() => {
-                          const message = encodeURIComponent("Hello, I am interested in the Custom plan. / Asc, waxaan rabaa inaan faahfaahin ka helo qorshaha Custom-ka.");
-                          window.open(`https://wa.me/251995817222?text=${message}`, '_blank');
+                          if (plan.name === 'Custom') {
+                            const message = encodeURIComponent("Hello, I am interested in the Custom plan. / Asc, waxaan rabaa inaan faahfaahin ka helo qorshaha Custom-ka.");
+                            window.open(`https://wa.me/251995817222?text=${message}`, '_blank');
+                            return;
+                          }
+                          navigate('/auth?mode=signup');
                         }}
                       >
-                        Contact Us
+                        {plan.buttonText}
+                        {getButtonIcon(plan.buttonIcon) && <span className="ml-2">{getButtonIcon(plan.buttonIcon)}</span>}
                       </Button>
-                    ) : (
-                      <Button
-                        className={`w-full transition-all ${index === 1 ? 'bg-gradient-primary hover:opacity-90' : ''}`}
-                        variant={index === 1 ? 'default' : 'outline'}
-                        onClick={() => navigate('/auth?mode=signup')}
-                      >
-                        Get Started
-                      </Button>
-                    )}
+                    </div>
                   </Card>
                 </ScaleIn>
               ))}
