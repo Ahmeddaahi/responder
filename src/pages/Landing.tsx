@@ -376,7 +376,7 @@ const Landing = () => {
                       </div>
                       <div className="flex-1">
                         <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-sm">Qolka hotel-ka imisa ayuu yahay?</p>
+                          <p className="text-sm">Qolka single-ka ah waa imisa?</p>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">🇸🇴 Detected: Somali</p>
                       </div>
@@ -385,7 +385,7 @@ const Landing = () => {
                     <div className="flex gap-3 justify-end">
                       <div className="flex-1 text-right">
                         <div className="bg-primary/10 rounded-lg p-3 inline-block">
-                          <p className="text-sm">Mahadsanid su'aashaada! Qolalkeena waxay bilaabmaan $50 habeenkii. Miyaad rabtaa inaad qol booqato?</p>
+                          <p className="text-sm">Waad kumahadsantahay suaashaada! Qolka single-ka ah waa $50 habeenkii. Miyaad rabtaa inaan kuu qabto?</p>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">🤖 AI Response: Somali</p>
                       </div>
