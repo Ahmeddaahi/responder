@@ -612,7 +612,7 @@ serve(async (req) => {
                     // Fetch booking configuration (if any) - include id for updates
                     const { data: bookingConfig } = await supabase
                         .from('booking_configurations')
-                        .select('id, *')
+                        .select('id, business_type, business_name, language, is_active, field_configs, hotel_rooms_available, restaurant_opening_hours, hospital_departments, ai_instructions, currency')
                         .eq('user_id', userId)
                         .eq('is_active', true)
                         .maybeSingle();
@@ -832,37 +832,22 @@ Answer questions based ONLY on the information provided below. Extract and prese
                     }
 
                     context += '\n\nCRITICAL INSTRUCTIONS - READ CAREFULLY:\n';
-                    context += '0. **GREETING RESPONSE (ABSOLUTE HIGHEST PRIORITY)**: When a customer sends a greeting like "ASC", "asc", "asalamu alaykum", "aslamu calaykum", "salaamu alaykum", "al salaamu alaykum", or similar Islamic greetings:\n';
-                    context += '   - Respond with "WCS" or "Wacalaykum alsalaam" (NEVER respond with "ASC")\n';
-                    context += '   - Add "Walaal" (brother/sister) for warmth: "WSC Walaal" or "Wacalaykum alsalaam Walaal"\n';
-                    context += `   - After the greeting, welcome them to ${bookingConfig?.business_name || 'the business'} and ask how you can help\n`;
-                    context += `   - Example response:\n`;
-                    context += `     • "${forcedLanguage === 'somali' ? 'WSC Walaal! Kusoo dhawow ' + (bookingConfig?.business_name || 'ganacsiga') + '. Sidee kuu caawinaa?' : 'Wacalaykum alsalaam Walaal! Welcome to ' + (bookingConfig?.business_name || 'our business') + '. How can I help you?'}"\n`;
-                    context += '   - This rule takes ABSOLUTE PRIORITY over all other rules\n';
-                    context += '1. **UNAVAILABLE PRODUCT RESPONSE (HIGH PRIORITY - OVERRIDES PRODUCT RULES)**: When a customer asks about a specific product that is NOT found in either the PRODUCTS LIST or knowledge base:\n';
-                    context += '   - Respond with a SHORT, POLITE apology ONLY\n';
-                    context += '   - Match the response language:\n';
-                    context += `     • ${forcedLanguage === 'somali' ? 'Respond: "Waan ka xunnahay, alaabtaas ma hayno."' : 'Respond: "Sorry, we don\'t have that product."'}\n`;
-                    context += '   - DO NOT list all available products\n';
-                    context += '   - DO NOT suggest alternatives\n';
-                    context += '   - DO NOT provide additional information\n';
-                    context += '   - Keep the response clean, respectful, and brief\n';
-                    context += '   - This rule OVERRIDES all other product-related instructions below\n';
-                    context += '1. PRODUCT SEARCH: When a customer asks about a specific product (e.g., "iPhone 17", "Samsung Galaxy", "laptop"), you MUST:\n';
-                    context += '   - FIRST check the "PRODUCTS LIST" section above (if it exists) - this is the PRIMARY source for product information\n';
-                    context += '   - Search for the product name in the PRODUCTS LIST, matching it even if it appears in different forms (e.g., "iPhone 17", "iphone 17", "iPhone17")\n';
-                    context += '   - If found in PRODUCTS LIST, provide the product name, price, and details from that section\n';
-                    context += '   - If not found in PRODUCTS LIST, then search through ALL the knowledge base content above for that product name\n';
-                    context += '   - Extract and present ALL available information about that product: name, description, features, specifications, and PRICE\n';
-                    context += '   - If the product is not found in either PRODUCTS LIST or knowledge base, apply rule 0 above (short polite apology)\n';
-                    context += '2. PRODUCT LISTINGS: When customers ask "what products do you have" or "what do you sell", FIRST list ALL products from the "PRODUCTS LIST" section above (if it exists), then list any additional products mentioned in the knowledge base content above, all with their prices.\n';
-                    context += '3. PRICING: When customers ask about prices, search the knowledge base content above for pricing information and present it clearly.\n';
-                    context += '4. BUSINESS DETAILS: When customers ask about business details (location, hours, contact, services), extract and present this information from the content above.\n';
 
                     // Build service list instructions based on what's actually enabled
                     const serviceInstructions: string[] = [];
+                    const businessType = bookingConfig?.business_type || 'custom';
+
                     if (bookingConfig && bookingConfig.is_active) {
-                        serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
+                        if (businessType === 'hotel') {
+                            serviceInstructions.push(forcedLanguage === 'somali' ? '🏨 Qabsashada qol iyo hubinta boosaska' : '🏨 Booking rooms and checking availability');
+                            serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Hubinta taariikhaha la heli karo' : '📅 Checking available dates');
+                        } else if (businessType === 'restaurant') {
+                            serviceInstructions.push(forcedLanguage === 'somali' ? '🍽️ Qabsashada miis' : '🍽️ Booking a table');
+                        } else if (businessType === 'hospital') {
+                            serviceInstructions.push(forcedLanguage === 'somali' ? '👨‍⚕️ Qabsashada takhtar' : '👨‍⚕️ Booking a doctor appointment');
+                        } else {
+                            serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
+                        }
                     }
                     if (productsData && productsData.length > 0 || knowledgeData && knowledgeData.length > 0) {
                         serviceInstructions.push(forcedLanguage === 'somali' ? '❓ Jawaab su\'aalaha ganacsiga' : '❓ Answering questions about our business');
@@ -873,6 +858,31 @@ Answer questions based ONLY on the information provided below. Extract and prese
                     if (bookingConfig && bookingConfig.is_active) {
                         serviceInstructions.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
                     }
+
+                    // Format services for the prompt
+                    const formattedServices = serviceInstructions.map(s => `     ${s}`).join('\n');
+
+                    context += '0. **GREETING RESPONSE (ABSOLUTE HIGHEST PRIORITY)**: When a customer sends a greeting like "ASC", "asc", "asalamu alaykum", "aslamu calaykum", "salaamu alaykum", "al salaamu alaykum", or similar Islamic greetings:\n';
+                    context += '   - Respond with "WCS" or "Wacalaykum alsalaam" (NEVER respond with "ASC")\n';
+                    context += '   - Add "Walaal" (brother/sister) for warmth: "WSC Walaal" or "Wacalaykum alsalaam Walaal"\n';
+                    context += `   - After the greeting, welcome them to ${bookingConfig?.business_name || 'the business'}\n`;
+                    context += '   - **YOU MUST LIST THE AVAILABLE SERVICES** immediately after the welcome message.\n';
+
+                    context += `   - Exact expected structure for Somali:\n`;
+                    context += `     1. Greeting + Welcome\n`;
+                    context += `     2. "Waxaan kaa caawin karaa:"\n`;
+                    context += `     3. [List of services]\n`;
+                    context += `     4. "Fadlan ii sheeg sida aan kuu caawin karo maanta?"\n`;
+
+                    if (forcedLanguage === 'somali') {
+                        context += `   - REQUIRED RESPONSE TEMPLATE:\n`;
+                        context += `     "WSC Walaal! Kusoo dhawow ${bookingConfig?.business_name || 'Royal Hotel'}. Waxaan kaa caawin karaa:\n\n${formattedServices}\n\nFadlan ii sheeg sida aan kuu caawin karo maanta?"\n`;
+                    } else {
+                        context += `   - REQUIRED RESPONSE TEMPLATE:\n`;
+                        context += `     "Wacalaykum alsalaam Walaal! Welcome to ${bookingConfig?.business_name || 'Royal Hotel'}. I can help you with:\n\n${formattedServices}\n\nPlease tell me how I can assist you?"\n`;
+                    }
+                    context += '   - Use this EXACT format. Do not shorten it. Do not ask "how can I help" without listing the services first.\n';
+                    context += '   - This rule takes ABSOLUTE PRIORITY over all other rules\n';
 
                     context += '5. **LISTING AVAILABLE SERVICES (IMPORTANT)**: When customers ask "what can you do?", "what services do you offer?", "maxaad iigu caawin kartaa?" (Somali), "what can you help me with?", "what do you offer?", or similar questions about your capabilities:\n';
                     if (serviceInstructions.length > 0) {
@@ -1006,112 +1016,6 @@ Answer questions based ONLY on the information provided below. Extract and prese
                         console.log('👋 First message detected from customer:', customerPhone);
                     }
 
-                    // Generate and send welcome message for first-time customers
-                    if (isFirstMessage) {
-                        // Check if the message is a greeting
-                        const userMessageLower = userMessage.toLowerCase().trim();
-                        const isGreeting = userMessageLower === 'asc' ||
-                            userMessageLower.includes('asalamu alaykum') ||
-                            userMessageLower.includes('aslamu calaykum') ||
-                            userMessageLower.includes('salaamu alaykum') ||
-                            userMessageLower.includes('al salaamu alaykum') ||
-                            userMessageLower === 'hello' ||
-                            userMessageLower === 'hi' ||
-                            userMessageLower === 'hey';
-
-                        // Determine enabled services
-                        const hasBooking = bookingConfig && bookingConfig.is_active;
-                        const hasProducts = productsData && productsData.length > 0;
-                        const hasKnowledge = knowledgeData && knowledgeData.length > 0;
-                        const canUpdateBookings = hasBooking; // Can update/cancel if booking is enabled
-
-                        // Generate welcome message based on enabled services
-                        let welcomeMessage = '';
-                        const businessName = bookingConfig?.business_name || (forcedLanguage === 'somali' ? 'ganacsiga' : 'our business');
-
-                        // Build list of available services
-                        const services: string[] = [];
-                        if (hasBooking) {
-                            services.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
-                        }
-                        if (hasProducts || hasKnowledge) {
-                            services.push(forcedLanguage === 'somali' ? '❓ Jawaab su\'aalaha ganacsiga' : '❓ Answering questions about our business');
-                        }
-                        if (hasProducts) {
-                            services.push(forcedLanguage === 'somali' ? '💰 Qiimaha iyo helitaanka alaabta' : '💰 Providing pricing and availability details');
-                        }
-                        if (canUpdateBookings) {
-                            services.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
-                        }
-
-                        if (forcedLanguage === 'somali') {
-                            // Start with greeting if it's a greeting message
-                            if (isGreeting) {
-                                welcomeMessage = `WSC Walaal! 👋 `;
-                            } else {
-                                welcomeMessage = `👋 `;
-                            }
-                            welcomeMessage += `Kusoo dhawow ${businessName}.\n\n`;
-
-                            if (services.length > 0) {
-                                welcomeMessage += `Waxaan kuu caawin karaa:\n\n`;
-                                welcomeMessage += services.join('\n');
-                                welcomeMessage += `\n\nFadlan ii sheeg sidee aan kuu caawin karaa maanta?`;
-                            } else {
-                                welcomeMessage += `Waxaan kuu caawin karaa macluumaadka ganacsiga.\n\nFadlan ii sheeg sidee aan kuu caawin karaa maanta?`;
-                            }
-                        } else {
-                            // Start with greeting if it's a greeting message
-                            if (isGreeting) {
-                                welcomeMessage = `Wacalaykum alsalaam Walaal! 👋 `;
-                            } else {
-                                welcomeMessage = `Hello! 👋 `;
-                            }
-                            welcomeMessage += `Welcome to ${businessName}.\n\n`;
-
-                            if (services.length > 0) {
-                                welcomeMessage += `I can help you with:\n\n`;
-                                welcomeMessage += services.join('\n');
-                                welcomeMessage += `\n\nPlease tell me how I can assist you today.`;
-                            } else {
-                                welcomeMessage += `I can help you with information about our business.\n\nPlease tell me how I can assist you today.`;
-                            }
-                        }
-
-                        console.log('📨 Sending welcome message:', welcomeMessage.substring(0, 100) + '...');
-
-                        // Send welcome message
-                        const welcomeSent = await sendWhatsAppMessage(
-                            phoneNumberId,
-                            accessToken,
-                            customerPhone,
-                            welcomeMessage
-                        );
-
-                        if (welcomeSent) {
-                            // Log the welcome message
-                            const { error: logError } = await supabase
-                                .from('message_logs')
-                                .insert({
-                                    user_id: userId,
-                                    platform: 'whatsapp',
-                                    customer_id: customerPhone,
-                                    message_text: userMessage,
-                                    ai_response: welcomeMessage
-                                });
-
-                            if (logError) {
-                                console.error('⚠️ Error saving welcome message log:', logError);
-                            }
-
-                            console.log('✅ Welcome message sent successfully');
-                            messagesProcessed++;
-                            continue; // Skip AI processing for welcome message
-                        } else {
-                            console.error('❌ Failed to send welcome message, continuing with normal AI processing');
-                            // Continue with normal AI processing if welcome message fails
-                        }
-                    }
 
                     // Prepare messages array for the API call
                     // Include context as system message, then conversation history, then current message

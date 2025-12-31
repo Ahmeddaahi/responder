@@ -180,10 +180,10 @@ serve(async (req) => {
             .order('created_at', { ascending: false })
             .limit(productsLimit);
 
-        // Fetch booking configuration to get the forced language setting
+        // Fetch booking configuration to get the forced language setting and business details
         const { data: bookingConfig } = await supabase
             .from('booking_configurations')
-            .select('language, business_name')
+            .select('language, business_name, business_type')
             .eq('user_id', userId)
             .eq('is_active', true)
             .maybeSingle();
@@ -316,14 +316,56 @@ Answer questions based ONLY on the information provided below. Extract and prese
             context += 'No business information available yet. Provide helpful, professional responses.';
         }
 
-        context += '\n\nCRITICAL INSTRUCTIONS - READ CAREFULLY:\n';
+        // Build service list instructions based on what's actually enabled
+        const serviceInstructions: string[] = [];
+        const businessType = bookingConfig?.business_type || 'custom';
+
+        if (bookingConfig && bookingConfig.is_active) {
+            if (businessType === 'hotel') {
+                serviceInstructions.push(forcedLanguage === 'somali' ? '🏨 Qabsashada qol iyo hubinta boosaska' : '🏨 Booking rooms and checking availability');
+                serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Hubinta taariikhaha la heli karo' : '📅 Checking available dates');
+            } else if (businessType === 'restaurant') {
+                serviceInstructions.push(forcedLanguage === 'somali' ? '🍽️ Qabsashada miis' : '🍽️ Booking a table');
+            } else if (businessType === 'hospital') {
+                serviceInstructions.push(forcedLanguage === 'somali' ? '👨‍⚕️ Qabsashada takhtar' : '👨‍⚕️ Booking a doctor appointment');
+            } else {
+                serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
+            }
+        }
+        if (productsData && productsData.length > 0 || knowledgeData && knowledgeData.length > 0) {
+            serviceInstructions.push(forcedLanguage === 'somali' ? '❓ Jawaab su\'aalaha ganacsiga' : '❓ Answering questions about our business');
+        }
+        if (productsData && productsData.length > 0) {
+            serviceInstructions.push(forcedLanguage === 'somali' ? '💰 Qiimaha iyo helitaanka alaabta' : '💰 Providing pricing and availability details');
+        }
+        if (bookingConfig && bookingConfig.is_active) {
+            serviceInstructions.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
+        }
+
+        // Format services for the prompt
+        const formattedServices = serviceInstructions.map(s => `     ${s}`).join('\\n');
+        const businessName = bookingConfig?.business_name || 'our business';
+
         context += '0. **GREETING RESPONSE (ABSOLUTE HIGHEST PRIORITY)**: When a customer sends a greeting like "ASC", "asc", "asalamu alaykum", "aslamu calaykum", "salaamu alaykum", "al salaamu alaykum", or similar Islamic greetings:\n';
         context += '   - Respond with "WCS" or "Wacalaykum alsalaam" (NEVER respond with "ASC")\n';
         context += '   - Add "Walaal" (brother/sister) for warmth: "WSC Walaal" or "Wacalaykum alsalaam Walaal"\n';
-        context += '   - After the greeting, welcome them and ask how you can help\n';
-        context += '   - Example responses:\n';
-        context += '     • "WSC Walaal! Soo dhawow. Sidee kuu caawinaa?" (Somali)\n';
-        context += '     • "Wacalaykum alsalaam Walaal! Welcome. How can I help you?" (English)\n';
+        context += `   - After the greeting, welcome them to ${businessName}\n`;
+        context += '   - **YOU MUST LIST THE AVAILABLE SERVICES** immediately after the welcome message.\n';
+
+        context += `   - Exact expected structure for Somali:\n`;
+        context += `     1. Greeting + Welcome\n`;
+        context += `     2. "Waxaan kaa caawin karaa:"\n`;
+        context += `     3. [List of services]\n`;
+        context += `     4. "Fadlan ii sheeg sida aan kuu caawin karo maanta?"\n`;
+
+        if (forcedLanguage === 'somali') {
+            context += `   - REQUIRED RESPONSE TEMPLATE:\n`;
+            context += `     "WSC Walaal! Kusoo dhawow ${businessName}. Waxaan kaa caawin karaa:\n\n${formattedServices}\n\nFadlan ii sheeg sida aan kuu caawin karo maanta?"\n`;
+        } else {
+            context += `   - REQUIRED RESPONSE TEMPLATE:\n`;
+            context += `     "Wacalaykum alsalaam Walaal! Welcome to ${businessName}. I can help you with:\n\n${formattedServices}\n\nPlease tell me how I can assist you?"\n`;
+        }
+        context += '   - Use this EXACT format. Do not shorten it. Do not ask "how can I help" without listing the services first.\n';
         context += '   - This rule takes ABSOLUTE PRIORITY over all other rules\n';
         context += '1. **UNAVAILABLE PRODUCT RESPONSE (HIGH PRIORITY - OVERRIDES PRODUCT RULES)**: When a customer asks about a specific product that is NOT found in either the PRODUCTS LIST or knowledge base:\n';
         context += '   - Respond with a SHORT, POLITE apology ONLY\n';
@@ -345,20 +387,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
         context += '3. PRICING: When customers ask about prices, search the knowledge base content above for pricing information and present it clearly.\n';
         context += '4. BUSINESS DETAILS: When customers ask about business details (location, hours, contact, services), extract and present this information from the content above.\n';
 
-        // Build service list instructions based on what's actually enabled
-        const serviceInstructions: string[] = [];
-        if (bookingConfig && bookingConfig.is_active) {
-            serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
-        }
-        if (productsData && productsData.length > 0 || knowledgeData && knowledgeData.length > 0) {
-            serviceInstructions.push(forcedLanguage === 'somali' ? '❓ Jawaab su\'aalaha ganacsiga' : '❓ Answering questions about our business');
-        }
-        if (productsData && productsData.length > 0) {
-            serviceInstructions.push(forcedLanguage === 'somali' ? '💰 Qiimaha iyo helitaanka alaabta' : '💰 Providing pricing and availability details');
-        }
-        if (bookingConfig && bookingConfig.is_active) {
-            serviceInstructions.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
-        }
+
 
         context += '5. **LISTING AVAILABLE SERVICES (IMPORTANT)**: When customers ask "what can you do?", "what services do you offer?", "maxaad iigu caawin kartaa?" (Somali), "what can you help me with?", "what do you offer?", or similar questions about your capabilities:\n';
         if (serviceInstructions.length > 0) {
