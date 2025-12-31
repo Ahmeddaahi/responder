@@ -213,7 +213,31 @@ serve(async (req) => {
             ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, business-appropriate Somali. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
             : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
-        let context = languageHeader + `You are a helpful business assistant chatbot. Your primary job is to answer customer questions about:
+        // Get current date for the prompt
+        const now = new Date();
+        const options: Intl.DateTimeFormatOptions = {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'Africa/Addis_Ababa'
+        };
+        const todayDate = now.toLocaleDateString('en-GB', options);
+
+        let context = languageHeader + `You are a helpful business assistant chatbot.
+
+Current date: ${todayDate}
+Timezone: Africa/Addis_Ababa (UTC+3)
+
+Date handling rules:
+- If the user says "today", use today’s date (${todayDate}).
+- If the user says "tomorrow", add 1 day to today’s date.
+- If the user says "next week", add 7 days.
+- If the user mentions a day or month without a year, ALWAYS assume the current year (${now.getFullYear()}).
+- NEVER select a past date.
+- If the calculated date is in the past, move it to the next valid future date.
+- Do NOT guess if unclear. Ask for clarification if needed (e.g., "Do you mean this coming Friday?").
+
+Your primary job is to answer customer questions about:
 1. PRODUCT DETAILS: Product names, descriptions, features, specifications, what products are available
 2. PRODUCT PRICES: Product costs, pricing information, pricing tiers, discounts, special offers
 3. BUSINESS DETAILS: Business name, description, location, operating hours, contact information, services offered

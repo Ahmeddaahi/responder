@@ -638,7 +638,29 @@ serve(async (req) => {
                         ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, business-appropriate Somali. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
                         : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
+                    // Get current date for the prompt
+                    const now = new Date();
+                    const options: Intl.DateTimeFormatOptions = {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        timeZone: 'Africa/Addis_Ababa'
+                    };
+                    const todayDate = now.toLocaleDateString('en-GB', options);
+
                     let context = languageHeader + `You are a helpful business assistant chatbot.
+
+Current date: ${todayDate}
+Timezone: Africa/Addis_Ababa (UTC+3)
+
+Date handling rules:
+- If the user says "today", use today’s date (${todayDate}).
+- If the user says "tomorrow", add 1 day to today’s date.
+- If the user says "next week", add 7 days.
+- If the user mentions a day or month without a year, ALWAYS assume the current year (${now.getFullYear()}).
+- NEVER select a past date.
+- If the calculated date is in the past, move it to the next valid future date.
+- Do NOT guess if unclear. Ask for clarification if needed (e.g., "Do you mean this coming Friday?").
 
 If the customer wants to MAKE A BOOKING (hotel room, restaurant table, hospital/clinic appointment, or other service), you must follow the booking configuration below.
 If the customer is only asking QUESTIONS, you answer using the business & product information.
@@ -718,7 +740,7 @@ JSON RULES:
 - Include ONLY fields explicitly stated by the customer in current or previous messages.
 - If a value is not provided yet, use null.
 - Do NOT guess, infer, or autocomplete values.
-- Dates MUST be in YYYY-MM-DD format.
+- Dates MUST be in YYYY-MM-DD format only.
 - Numbers MUST be actual numbers (e.g., 2), not strings (e.g., "two").
 - IMPORTANT: Do NOT include any of the standard fields above (name, phone, dates, guests, room_type) inside the "custom_data" object. Only use "custom_data" for fields that are NOT already listed in the schema.
 - If the customer has confirmed the booking, set "status" to "confirmed". Otherwise, use "pending" if booking intent is active.
@@ -1262,6 +1284,50 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                             business_name: bookingConfig.business_name,
                                             updated_at: new Date().toISOString(),
                                         };
+
+                                        // Backend Validation for Dates
+                                        const nowUtc3 = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Addis_Ababa" }));
+                                        const today = new Date(nowUtc3);
+                                        today.setHours(0, 0, 0, 0);
+
+                                        if (extractedFields.check_in_date) {
+                                            const checkIn = new Date(extractedFields.check_in_date);
+                                            if (!isNaN(checkIn.getTime())) {
+                                                if (checkIn < today) {
+                                                    console.log(`⚠️ AI extracted a past check-in date: ${extractedFields.check_in_date}. Moving to today.`);
+                                                    extractedFields.check_in_date = today.toISOString().split('T')[0];
+                                                }
+
+                                                // Max 1 year range
+                                                const maxDate = new Date(today);
+                                                maxDate.setFullYear(maxDate.getFullYear() + 1);
+                                                if (checkIn > maxDate) {
+                                                    console.log(`⚠️ AI extracted a date beyond max booking range: ${extractedFields.check_in_date}.`);
+                                                    extractedFields.check_in_date = null;
+                                                }
+                                            } else {
+                                                extractedFields.check_in_date = null;
+                                            }
+                                        }
+
+                                        if (extractedFields.check_out_date) {
+                                            const checkOut = new Date(extractedFields.check_out_date);
+                                            if (!isNaN(checkOut.getTime())) {
+                                                if (checkOut < today) {
+                                                    extractedFields.check_out_date = null;
+                                                }
+
+                                                if (extractedFields.check_in_date) {
+                                                    const checkIn = new Date(extractedFields.check_in_date);
+                                                    if (!isNaN(checkIn.getTime()) && checkOut <= checkIn) {
+                                                        console.log(`⚠️ Check-out date (${extractedFields.check_out_date}) is before or same as check-in (${extractedFields.check_in_date}).`);
+                                                        extractedFields.check_out_date = null;
+                                                    }
+                                                }
+                                            } else {
+                                                extractedFields.check_out_date = null;
+                                            }
+                                        }
 
                                         // Use customer phone from WA if not captured by AI
                                         bookingData.customer_phone = extractedFields.customer_phone || customerPhone;
