@@ -1,9 +1,7 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Allow: /favicon.ico
-Allow: /favicon.webp
-Allow: /favicons.png
+Allow: /pricing
+Allow: /auth
 
-# Sitemap Location
+# Sitemaps
 Sitemap: https://resbonder.online/sitemap.xml

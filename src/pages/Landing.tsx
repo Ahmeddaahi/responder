@@ -324,7 +324,7 @@ const Landing = () => {
               </div>
               <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight">
                 <SplitText
-                  text="Your AI Business Agent"
+                  text="Somali AI Business Agent"
                   className="block text-foreground"
                   tag="h1"
                   delay={100}
@@ -389,7 +389,7 @@ const Landing = () => {
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12 sm:mb-16 md:mb-20">
               <SlideUp>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">Powerful Features for AI Customer Support</h2>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">Powerful Somali AI Chatbot Features</h2>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
                   Everything you need to automate customer support with AI-powered WhatsApp bots
                 </p>
@@ -584,7 +584,7 @@ const Landing = () => {
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-10 sm:mb-12 md:mb-16">
               <SlideUp>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">Simple, Transparent Pricing for AI Chatbot Plans</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">Flexible Pricing for Somali AI WhatsApp Chatbots</h2>
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
                   Choose the plan that fits your business needs. Start with our one-time Free Trial.
                 </p>
