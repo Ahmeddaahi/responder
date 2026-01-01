@@ -105,8 +105,8 @@ const Landing = () => {
     },
     {
       icon: TrendingUp,
-      title: "Native Somali Support 🇸🇴",
-      description: "Choose your AI language - Somali or English. Serve customers in their preferred language with cultural context awareness"
+      title: "Native Multi-language Support",
+      description: "Choose your AI language - Somali, English, or others. Serve customers in their preferred language with cultural context awareness"
     }
   ];
 
@@ -142,7 +142,7 @@ const Landing = () => {
         "50 messages total (One-time)",
         "5 Bookings included",
         "2 Room/Service types",
-        "🇸🇴 Somali + English AI",
+        "Somali + English AI",
         "Standard AI assistant",
         "WhatsApp integration",
         "No custom fields",
@@ -167,7 +167,7 @@ const Landing = () => {
         "500 messages per month",
         "50 Bookings included",
         "10 Room/Service types",
-        "🇸🇴 Somali or English AI",
+        "Somali or English AI",
         "Choose your AI language",
         "Advanced AI assistant",
         "Unlimited Custom Fields",
@@ -194,7 +194,7 @@ const Landing = () => {
         "5,000 messages per month",
         "Unlimited Bookings",
         "Unlimited Room/Service types",
-        "🇸🇴 Somali + English AI (Premium)",
+        "Somali + English AI (Premium)",
         "Cultural context awareness",
         "Premium AI (GPT-4o level)",
         "Unlimited Custom Fields",
@@ -314,17 +314,14 @@ const Landing = () => {
               {/* Language Support Badge */}
               <div className="flex justify-center mb-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-full backdrop-blur-sm">
-                  <span className="text-2xl">🇸🇴</span>
-                  <span className="text-sm font-semibold text-foreground">Somali</span>
-                  <span className="text-muted-foreground">+</span>
-                  <span className="text-2xl">🇬🇧</span>
-                  <span className="text-sm font-semibold text-foreground">English</span>
+                  <span className="text-sm font-semibold text-foreground">Multi-language</span>
+                  <span className="text-muted-foreground">Support</span>
                   <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Native Support</span>
                 </div>
               </div>
               <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight">
                 <SplitText
-                  text="Somali AI Business Agent"
+                  text="Automated AI Business Agent"
                   className="block text-foreground"
                   tag="h1"
                   delay={100}
@@ -353,10 +350,10 @@ const Landing = () => {
                 />
               </div>
               <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
-                The only WhatsApp AI with <span className="text-primary font-semibold">native Somali language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali or English.
+                The only WhatsApp AI with <span className="text-primary font-semibold">native multi-language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali, English, or any language.
               </p>
               <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 sm:mb-10 max-w-2xl mx-auto">
-                Built for Horn of Africa businesses • Choose your AI language • Cultural context awareness
+                Built for any business • Choose your AI language • Cultural context awareness
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -389,7 +386,7 @@ const Landing = () => {
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12 sm:mb-16 md:mb-20">
               <SlideUp>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">Powerful Somali AI Chatbot Features</h2>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">Powerful AI Chatbot Features</h2>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
                   Everything you need to automate customer support with AI-powered WhatsApp bots
                 </p>
@@ -417,14 +414,13 @@ const Landing = () => {
             <div className="text-center mb-12 sm:mb-16">
               <SlideUp>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-4">
-                  <span className="text-2xl">🇸🇴</span>
-                  <span className="text-sm font-semibold text-primary">Native Somali Language AI</span>
+                  <span className="text-sm font-semibold text-primary">Native Multi-language AI</span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">
-                  The Only WhatsApp AI Built for Somali Speakers
+                  The Only WhatsApp AI Built for Global Reach
                 </h2>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Choose your AI language - Somali or English. Serve your customers with culturally-aware responses in their preferred language
+                  Choose your AI language - Somali, English, or more. Serve your customers with culturally-aware responses in their preferred language
                 </p>
               </SlideUp>
             </div>
@@ -447,7 +443,7 @@ const Landing = () => {
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-sm">Qolka single-ka ah waa imisa?</p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">🇸🇴 Detected: Somali</p>
+                        <p className="text-xs text-muted-foreground mt-1">Detected: Somali</p>
                       </div>
                     </div>
                     {/* AI response in Somali */}
@@ -471,7 +467,7 @@ const Landing = () => {
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-sm">Yes, I want to book for 2 nights</p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">🇬🇧 Detected: English</p>
+                        <p className="text-xs text-muted-foreground mt-1">Detected: English</p>
                       </div>
                     </div>
                     {/* AI responds in English */}
@@ -527,9 +523,9 @@ const Landing = () => {
                         <TrendingUp className="w-6 h-6 text-emerald-500" />
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-2">Built for Horn of Africa</h4>
+                        <h4 className="font-semibold mb-2">Built for Global Business</h4>
                         <p className="text-sm text-muted-foreground">
-                          Designed specifically for businesses in Somalia, Somaliland, Djibouti, and Ethiopian Somali Region
+                          Designed for businesses in any region, with full support for multiple languages and currencies
                         </p>
                       </div>
                     </div>
@@ -543,7 +539,7 @@ const Landing = () => {
                       <div>
                         <h4 className="font-semibold mb-2">No Competitor Has This</h4>
                         <p className="text-sm opacity-90">
-                          We're the only WhatsApp AI platform with native Somali language support. Your competitive advantage starts here.
+                          We're the only WhatsApp AI platform with advanced multi-language support and cultural awareness.
                         </p>
                       </div>
                     </div>
@@ -584,7 +580,7 @@ const Landing = () => {
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-10 sm:mb-12 md:mb-16">
               <SlideUp>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">Flexible Pricing for Somali AI WhatsApp Chatbots</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">Flexible Pricing for Your AI WhatsApp Chatbots</h2>
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
                   Choose the plan that fits your business needs. Start with our one-time Free Trial.
                 </p>
