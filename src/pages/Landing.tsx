@@ -350,7 +350,7 @@ const Landing = () => {
                 />
               </div>
               <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
-                The only WhatsApp AI with <span className="text-primary font-semibold">native multi-language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali, English, or any language.
+                The only WhatsApp AI with <span className="text-primary font-semibold">native multi-language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali, English.
               </p>
               <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 sm:mb-10 max-w-2xl mx-auto">
                 Built for any business • Choose your AI language • Cultural context awareness
