@@ -29,6 +29,8 @@ import { Badge } from "@/components/ui/badge";
 import OpeningHoursEditor from "@/components/knowledge/OpeningHoursEditor";
 import BookingFlowEditor, { BookingField } from "@/components/knowledge/BookingFlowEditor";
 import RoomTypesEditor, { RoomType } from "@/components/knowledge/RoomTypesEditor";
+import MedicalTemplateEditor, { MedicalConfig } from "@/components/knowledge/MedicalTemplateEditor";
+import DoctorSlotsManager from "@/components/knowledge/DoctorSlotsManager";
 
 type BusinessType = "hotel" | "restaurant" | "hospital" | "custom";
 
@@ -63,6 +65,7 @@ interface BookingConfiguration {
   // Custom / advanced
   custom_fields: string;
   field_configs: BookingField[];
+  medical_config: MedicalConfig;
   business_name: string;
   ai_instructions: string;
   language: "so" | "en";
@@ -97,7 +100,17 @@ const DEFAULT_CONFIG: Omit<BookingConfiguration, "business_type"> = {
   hospital_departments: "",
   // Custom / advanced
   custom_fields: "[]",
-  field_configs: [],
+  medical_config: {
+    doctors: [
+      { id: "dr_a", name: "Dr. A", department: "General", type: "In-person", languages: "Somali, English", duration: "30", max_patients: "10", status: "Active" },
+      { id: "dr_b", name: "Dr. B", department: "Pediatrics", type: "In-person", languages: "Somali", duration: "30", max_patients: "10", status: "Active" },
+    ],
+    booking_rules: { one_per_day: true, same_day_allowed: true, booking_closure_hours: 1, max_advance_days: 7, auto_assign_doctor: true },
+    emergency_keywords: ["emergency", "bleeding", "severe pain", "accident", "unconscious", "degdeg"],
+    emergency_message: "This appears to be an emergency. Please stop this booking and contact our emergency line immediately at {{emergency_phone}} or visit the nearest ER.",
+    notifications: { whatsapp_confirmation: true, appointment_summary: true, reminder_24h: true },
+    legal_notice: "This chatbot does not provide medical diagnosis. For emergencies, contact the hospital directly."
+  },
   business_name: "",
   ai_instructions: "",
   language: "so",
@@ -124,9 +137,12 @@ const DEFAULT_FIELDS_MAP: Record<string, BookingField[]> = {
   hospital: [
     { id: 'customer_name', label: 'Patient Name', required: true, type: 'text', is_core: true },
     { id: 'customer_phone', label: 'Phone Number', required: true, type: 'text', is_core: true },
+    { id: 'gender', label: 'Gender', required: true, type: 'select', options: 'Male, Female', is_core: false },
+    { id: 'age', label: 'Age / DOB', required: true, type: 'text', is_core: false },
     { id: 'appointment_date', label: 'Appointment Date', required: true, type: 'date', is_core: true },
     { id: 'appointment_time', label: 'Appointment Time', required: true, type: 'time', is_core: true },
-    { id: 'department', label: 'Department', required: true, type: 'text', is_core: true },
+    { id: 'department', label: 'Department (Service)', required: true, type: 'text', is_core: true },
+    { id: 'doctor_name', label: 'Doctor Choice', required: false, type: 'text', is_core: true },
     { id: 'reason_for_visit', label: 'Reason for Visit', required: true, type: 'text', is_core: true },
   ],
   custom: [
@@ -267,7 +283,17 @@ const Knowledge = () => {
             : "[]",
           field_configs: (d.field_configs as BookingField[]) || DEFAULT_FIELDS_MAP[businessType] || [],
           business_name: d.business_name || "",
-          ai_instructions: d.ai_instructions ?? "",
+          medical_config: d.medical_config || {
+            doctors: [
+              { id: "dr_a", name: "Dr. A", department: "General", type: "In-person", languages: "Somali, English", duration: "30", max_patients: "10", status: "Active" },
+              { id: "dr_b", name: "Dr. B", department: "Pediatrics", type: "In-person", languages: "Somali", duration: "30", max_patients: "10", status: "Active" },
+            ],
+            booking_rules: { one_per_day: true, same_day_allowed: true, booking_closure_hours: 1, max_advance_days: 7, auto_assign_doctor: true },
+            emergency_keywords: ["emergency", "bleeding", "severe pain", "accident", "unconscious", "degdeg"],
+            emergency_message: "This appears to be an emergency. Please stop this booking and contact our emergency line immediately at {{emergency_phone}} or visit the nearest ER.",
+            notifications: { whatsapp_confirmation: true, appointment_summary: true, reminder_24h: true },
+            legal_notice: "This chatbot does not provide medical diagnosis. For emergencies, contact the hospital directly."
+          },
           language: (d.language as "so" | "en") || "so",
           currency: d.currency || "ETB",
         });
@@ -379,6 +405,7 @@ const Knowledge = () => {
         hotel_rooms_available: hotelRooms,
         restaurant_opening_hours: openingHours,
         hospital_departments: departments,
+        medical_config: config.medical_config,
         custom_fields: customFields,
         language: config.language,
         currency: config.currency,
@@ -662,12 +689,20 @@ const Knowledge = () => {
 
                           {selectedBusinessType === "hospital" && (
                             <div className="space-y-2">
-                              <Label className="text-xs">Available departments (comma separated)</Label>
-                              <Input
-                                placeholder="emergency, cardiology..."
-                                value={config.hospital_departments}
-                                onChange={(e) => setConfig({ ...config, hospital_departments: e.target.value })}
+                              {/* Legacy Departments info for backward compatibility if needed, but we prefer the new editor */}
+                              <MedicalTemplateEditor
+                                value={config.medical_config}
+                                onChange={(medConfig) => setConfig({ ...config, medical_config: medConfig })}
                               />
+
+                              {selectedBusinessType === "hospital" && (
+                                <div className="mt-8 pt-6 border-t border-border/50 animate-in fade-in slide-in-from-top-4">
+                                  <DoctorSlotsManager
+                                    doctors={config.medical_config.doctors}
+                                    userId={user?.id || ""}
+                                  />
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

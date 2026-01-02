@@ -612,7 +612,7 @@ serve(async (req) => {
                     // Fetch booking configuration (if any) - include id for updates
                     const { data: bookingConfig } = await supabase
                         .from('booking_configurations')
-                        .select('id, business_type, business_name, language, is_active, field_configs, hotel_rooms_available, restaurant_opening_hours, hospital_departments, ai_instructions, currency')
+                        .select('id, business_type, business_name, language, is_active, field_configs, hotel_rooms_available, restaurant_opening_hours, hospital_departments, medical_config, ai_instructions, currency')
                         .eq('user_id', userId)
                         .eq('is_active', true)
                         .maybeSingle();
@@ -628,9 +628,64 @@ serve(async (req) => {
                         autoDetected: autoDetectedLanguage,
                         selectedInConfig: selectedLanguage,
                         forcedLanguage: forcedLanguage,
-                        bookingConfigExists: !!bookingConfig,
                         bookingConfigLanguage: bookingConfig?.language || 'not set'
                     });
+
+                    // Fetch available doctor slots if medical business
+                    const now = new Date();
+                    let availableDoctorSlots: any[] = [];
+                    if (bookingConfig?.business_type === 'hospital') {
+                        const { data: slots } = await supabase
+                            .from('doctor_slots')
+                            .select('doctor_id, slot_date, slot_time')
+                            .eq('user_id', userId)
+                            .eq('status', 'available')
+                            .gte('slot_date', now.toISOString().split('T')[0])
+                            .lte('slot_date', new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+                            .order('slot_date', { ascending: true })
+                            .order('slot_time', { ascending: true });
+
+                        availableDoctorSlots = slots || [];
+                        console.log(`🏥 Found ${availableDoctorSlots.length} available slots for the next 7 days`);
+                    }
+
+                    // ===== EMERGENCY DETECTION =====
+                    if (bookingConfig?.business_type === 'hospital' && bookingConfig.medical_config) {
+                        const medConfig = bookingConfig.medical_config as any;
+                        const keywords = medConfig.emergency_keywords || [];
+                        const userMsgLower = userMessage.toLowerCase();
+
+                        const hasEmergency = keywords.some((kw: string) => userMsgLower.includes(kw.toLowerCase()));
+
+                        if (hasEmergency) {
+                            console.log('🚨 EMERGENCY DETECTED in user message:', userMessage);
+                            let emergencyMsg = medConfig.emergency_message || "This is an emergency. Please contact our emergency line.";
+
+                            // Replace placeholder with actual phone if available
+                            if (medConfig.emergency_phone) {
+                                emergencyMsg = emergencyMsg.replace('{{emergency_phone}}', medConfig.emergency_phone);
+                            }
+
+                            await sendWhatsAppMessage(
+                                phoneNumberId,
+                                accessToken,
+                                customerPhone,
+                                emergencyMsg
+                            );
+
+                            // Log the emergency interaction
+                            await supabase.from('message_logs').insert({
+                                user_id: userId,
+                                platform: 'whatsapp',
+                                customer_id: customerPhone,
+                                message_text: userMessage,
+                                ai_response: "[EMERGENCY AUTO-RESPONSE]"
+                            });
+
+                            continue; // Stop processing this message
+                        }
+                    }
+                    // ===== END EMERGENCY DETECTION =====
 
                     // Build context from knowledge base with focus on products, bookings and business details
                     // Add language requirement at the very beginning
@@ -639,7 +694,6 @@ serve(async (req) => {
                         : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
                     // Get current date for the prompt
-                    const now = new Date();
                     const options: Intl.DateTimeFormatOptions = {
                         day: 'numeric',
                         month: 'long',
@@ -702,7 +756,37 @@ CRITICAL: When a booking is confirmed for a specific room type, you MUST decreas
                                 }
                             })() : ''}
 ${bookingConfig.business_type === 'restaurant' ? `Restaurant opening hours: ${bookingConfig.restaurant_opening_hours || 'not specified'}` : ''}
-${bookingConfig.business_type === 'hospital' ? `Hospital departments: ${bookingConfig.hospital_departments || 'not specified'}` : ''}
+${bookingConfig.business_type === 'hospital' ? (() => {
+                                const medConfig = bookingConfig.medical_config as any;
+                                if (!medConfig) return `Hospital departments: ${bookingConfig.hospital_departments || 'not specified'}`;
+
+                                let medPrompt = `MEDICAL FACILITY DETAILS:
+- Name: ${bookingConfig.business_name}
+- Branch: ${medConfig.branch || 'Main'}
+- Address: ${medConfig.address || 'Not specified'}
+- Map: ${medConfig.google_map_link || 'Ask staff'}
+- Contact: ${medConfig.contact_phone || 'Ask staff'}
+- Emergency Line: ${medConfig.emergency_phone || 'Call nearest ER'}
+
+AVAILABLE DOCTORS & SERVICES:
+${(medConfig.doctors || []).map((d: any) => `- ${d.name} (${d.department}) | Consultation: ${d.type} | Languages: ${d.languages} | Duration: ${d.duration} mins | Status: ${d.status}`).join('\n')}
+
+BOOKING RULES:
+- Same-day bookings: ${medConfig.booking_rules?.same_day_allowed ? 'ALLOWED' : 'NOT ALLOWED'}
+- One booking per patient per day: ${medConfig.booking_rules?.one_per_day ? 'YES' : 'NO'}
+- Max booking in advance: ${medConfig.booking_rules?.max_advance_days || 7} days
+- Auto-assign doctor: ${medConfig.booking_rules?.auto_assign_doctor ? 'YES (assign first available if patient gas no preference)' : 'NO (patient must choose)'}
+
+LEGAL DISCLAIMER:
+${medConfig.legal_notice || 'This bot does not provide medical diagnosis.'}
+
+${availableDoctorSlots.length > 0
+                                        ? `AVAILABLE REAL-TIME SLOTS (Only suggest these exact times):
+${availableDoctorSlots.map(s => `- ${s.slot_date} at ${s.slot_time.substring(0, 5)} (Doctor: ${medConfig.doctors?.find((d: any) => d.id === s.doctor_id)?.name || s.doctor_id})`).join('\n')}`
+                                        : "Currently, no slots are available in the system. Mention we are fully booked or check back later."}
+`;
+                                return medPrompt;
+                            })() : ''}
 
 Extra AI booking instructions from the business:
 ${bookingConfig.ai_instructions || "None"}
@@ -730,10 +814,14 @@ The JSON block MUST follow this schema exactly:
   "customer_email": string | null,
   "check_in_date": string | null,
   "check_out_date": string | null,
+  "appointment_date": string | null,
+  "appointment_time": string | null,
   "number_of_guests": number | null,
   "room_type": string | null,
+  "doctor_name": string | null,
+  "doctor_id": string | null,
   "status": "pending" | "confirmed" | null,
-  "custom_data": object | null // For any OTHER fields requested by the user but not in the schema above.
+  "custom_data": object | null 
 }
 
 JSON RULES:
@@ -1263,6 +1351,14 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                         const extractedFields = JSON.parse(jsonString);
                                         console.log('✅ Parsed AI JSON:', extractedFields);
 
+                                        // Determine effective doctor ID if possible
+                                        let effectiveDoctorId = extractedFields.doctor_id;
+                                        if (!effectiveDoctorId && extractedFields.doctor_name && bookingConfig.business_type === 'hospital') {
+                                            const medConfig = bookingConfig.medical_config as any;
+                                            const doctor = medConfig?.doctors?.find((d: any) => d.name.toLowerCase().includes(extractedFields.doctor_name.toLowerCase()));
+                                            if (doctor) effectiveDoctorId = doctor.id;
+                                        }
+
                                         // 2. Check for existing booking (active conversation)
                                         const { data: existingBooking } = await supabase
                                             .from('bookings')
@@ -1335,8 +1431,8 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                         // Only include fields that are not null to avoid overwriting existing data
                                         const fieldsToSave = [
                                             'customer_name', 'customer_email', 'check_in_date',
-                                            'check_out_date', 'number_of_guests', 'room_type',
-                                            'status', 'custom_data'
+                                            'check_out_date', 'appointment_date', 'appointment_time',
+                                            'number_of_guests', 'room_type', 'status', 'custom_data'
                                         ];
 
                                         let hasAnyData = false;
@@ -1346,6 +1442,15 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                                 hasAnyData = true;
                                             }
                                         });
+
+                                        // Special handling for medical fields that aren't in first-class columns
+                                        if (extractedFields.doctor_name) {
+                                            bookingData.custom_data = {
+                                                ...(bookingData.custom_data || {}),
+                                                doctor_name: extractedFields.doctor_name
+                                            };
+                                            hasAnyData = true;
+                                        }
 
                                         // 4. Save if we have data or an existing booking
                                         if (hasAnyData || existingBooking) {
@@ -1372,6 +1477,17 @@ Answer questions based ONLY on the information provided below. Extract and prese
                                                     .eq('id', existingBooking.id);
                                                 console.log('✅ Updated booking record from AI JSON');
 
+                                                // Update slot if medical and confirmed
+                                                if (bookingData.status === 'confirmed' && bookingConfig.business_type === 'hospital' && extractedFields.appointment_date && extractedFields.appointment_time && effectiveDoctorId) {
+                                                    console.log('🔗 Linking existing booking to doctor slot...');
+                                                    await supabase
+                                                        .from('doctor_slots')
+                                                        .update({ status: 'booked', booking_id: existingBooking.id })
+                                                        .eq('doctor_id', effectiveDoctorId)
+                                                        .eq('slot_date', extractedFields.appointment_date)
+                                                        .ilike('slot_time', `%${extractedFields.appointment_time}%`);
+                                                }
+
                                                 // Only send email if booking was just confirmed (not on every update)
                                                 if (isNewlyConfirmed) {
                                                     console.log('📧 Booking newly confirmed, sending email notification');
@@ -1392,6 +1508,17 @@ Answer questions based ONLY on the information provided below. Extract and prese
 
                                                 if (!insertError && newBooking) {
                                                     console.log('✅ Created booking record from AI JSON');
+
+                                                    // Update slot if medical and confirmed
+                                                    if (bookingData.status === 'confirmed' && bookingConfig.business_type === 'hospital' && extractedFields.appointment_date && extractedFields.appointment_time && effectiveDoctorId) {
+                                                        console.log('🔗 Linking booking to doctor slot...');
+                                                        await supabase
+                                                            .from('doctor_slots')
+                                                            .update({ status: 'booked', booking_id: newBooking.id })
+                                                            .eq('doctor_id', effectiveDoctorId)
+                                                            .eq('slot_date', extractedFields.appointment_date)
+                                                            .ilike('slot_time', `%${extractedFields.appointment_time}%`);
+                                                    }
 
                                                     // Only send email if the new booking is already confirmed
                                                     if (wasConfirmed) {
@@ -1493,21 +1620,18 @@ Answer questions based ONLY on the information provided below. Extract and prese
                         console.log('✅ Message sent successfully to WhatsApp');
                         messagesProcessed++;
                     }
-                }
-            }
-        }
+                } // end message loop
+            } // end change loop
+        } // end entry loop
 
         console.log(`📊 Total messages processed in this webhook: ${messagesProcessed}`);
-
         console.log('✅ Webhook processing completed successfully');
+
         return new Response(JSON.stringify({ status: 'ok' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
-
     } catch (error: any) {
         console.error('❌ CRITICAL ERROR in whatsapp-webhook function:', error);
-        console.error('   Error message:', error.message);
-        console.error('   Error stack:', error.stack);
         return new Response(
             JSON.stringify({ error: error.message || 'Internal server error' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
