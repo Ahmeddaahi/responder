@@ -104,9 +104,9 @@ const ManagedSetupModal = ({ isOpen, onClose, userId, onSuccess }: ManagedSetupM
                 <DialogContent className="sm:max-w-[425px]">
                     <form onSubmit={handleSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Request Managed Setup - $1</DialogTitle>
+                            <DialogTitle>Request Managed Setup - $1 / 200 ETB</DialogTitle>
                             <DialogDescription>
-                                Enter your details. You'll be asked to pay $1 to process your WhatsApp setup request.
+                                Enter your details. You'll be asked to pay $1 (200 ETB) to process your WhatsApp setup request.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">

@@ -380,7 +380,7 @@ const Settings = () => {
                         ) : (
                           <>
                             <p className="text-sm text-muted-foreground mt-1 mb-4">
-                              Don't worry! If you're not technical, our team can handle the entire WhatsApp setup for you.
+                              Don't worry! If you're not technical, our team can handle the entire WhatsApp setup for you for just <span className="font-semibold text-primary">$1 (200 ETB)</span>.
                               Just give us your business details, and we'll do the rest.
                             </p>
                             <Button
@@ -388,7 +388,7 @@ const Settings = () => {
                               className="border-primary/50 text-primary hover:bg-primary/5"
                               onClick={() => setIsManagedSetupOpen(true)}
                             >
-                              We can do it for you
+                              We can do it for you - $1 / 200 ETB
                             </Button>
                           </>
                         )}
