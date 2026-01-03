@@ -116,31 +116,49 @@ serve(async (req) => {
             throw new Error('Failed to update payment');
         }
 
-        // If payment is successful, update user subscription
+        // If payment is successful, update user subscription or managed setup
         if (paymentStatus === 'paid') {
-            const planConfig = PLAN_CONFIG[payment.plan_id];
+            if (payment.plan_id === 'managed_setup') {
+                // Update the managed_setups table
+                const { error: setupError } = await supabase
+                    .from('managed_setups')
+                    .update({
+                        payment_status: 'verified',
+                    })
+                    .eq('user_id', payment.user_id)
+                    .eq('payment_method', 'crypto')
+                    .eq('payment_status', 'pending');
 
-            if (planConfig) {
-                // Update subscription
-                const { error: subError } = await supabase
-                    .from('subscriptions')
-                    .upsert({
-                        user_id: payment.user_id,
-                        plan: payment.plan_id,
-                        message_limit: planConfig.messageLimit,
-                        messages_used: 0,
-                        is_active: true,
-                        started_at: new Date().toISOString(),
-                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                    }, {
-                        onConflict: 'user_id'
-                    });
-
-                if (subError) {
-                    console.error('Failed to update subscription:', subError);
-                    // Don't throw error - payment was successful, we can retry subscription update
+                if (setupError) {
+                    console.error('Failed to update managed setup:', setupError);
                 } else {
-                    console.log(`Subscription updated for user ${payment.user_id}, plan: ${payment.plan_id}`);
+                    console.log(`Managed setup updated for user ${payment.user_id}`);
+                }
+            } else {
+                const planConfig = PLAN_CONFIG[payment.plan_id];
+
+                if (planConfig) {
+                    // Update subscription
+                    const { error: subError } = await supabase
+                        .from('subscriptions')
+                        .upsert({
+                            user_id: payment.user_id,
+                            plan: payment.plan_id,
+                            message_limit: planConfig.messageLimit,
+                            messages_used: 0,
+                            is_active: true,
+                            started_at: new Date().toISOString(),
+                            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        }, {
+                            onConflict: 'user_id'
+                        });
+
+                    if (subError) {
+                        console.error('Failed to update subscription:', subError);
+                        // Don't throw error - payment was successful, we can retry subscription update
+                    } else {
+                        console.log(`Subscription updated for user ${payment.user_id}, plan: ${payment.plan_id}`);
+                    }
                 }
             }
         }

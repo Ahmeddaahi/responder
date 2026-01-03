@@ -12,6 +12,7 @@ const corsHeaders = {
 const PLAN_PRICING: Record<string, { price: number; messageLimit: number }> = {
     'starter': { price: 5, messageLimit: 500 },
     'enterprise': { price: 25, messageLimit: 5000 },
+    'managed_setup': { price: 1, messageLimit: 0 },
 };
 
 serve(async (req) => {
