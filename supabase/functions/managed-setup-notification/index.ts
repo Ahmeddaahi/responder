@@ -7,11 +7,12 @@ const corsHeaders = {
 };
 
 interface NotificationBody {
-    task: 'request' | 'complete';
+    task: 'request' | 'complete' | 'reject';
     userId?: string;
     businessName?: string;
     phoneNumber?: string;
     email?: string;
+    reason?: string;
 }
 
 serve(async (req) => {
@@ -20,7 +21,7 @@ serve(async (req) => {
     }
 
     try {
-        const { task, userId, businessName, phoneNumber, email }: NotificationBody = await req.json();
+        const { task, userId, businessName, phoneNumber, email, reason }: NotificationBody = await req.json();
         const resendApiKey = Deno.env.get('RESEND_API_KEY');
         const senderEmail = Deno.env.get('RESEND_SENDER_EMAIL') || 'onboarding@resend.dev';
         const adminEmail = Deno.env.get('ADMIN_EMAIL') || senderEmail; // Fallback to sender
@@ -50,6 +51,20 @@ serve(async (req) => {
         <p>Hello,</p>
         <p>We have successfully configured your WhatsApp Business API. Your AI chatbot is now live and ready to respond to your customers!</p>
         <p><a href="${siteUrl}/dashboard">Go to your Dashboard</a> to see it in action.</p>
+        <p>Best regards,<br/>The Resbonder Team</p>
+      `;
+        } else if (task === 'reject') {
+            recipient = email!;
+            subject = "Update regarding your WhatsApp Setup Request";
+            html = `
+        <h1>Setup Request Update</h1>
+        <p>Hello,</p>
+        <p>Thank you for your interest in our managed WhatsApp setup service.</p>
+        <p>Unfortunately, we couldn't process your request at this time for the following reason:</p>
+        <blockquote style="background: #f9f9f9; border-left: 5px solid #ccc; padding: 10px; margin: 20px 0;">
+            ${reason || "Payment could not be verified."}
+        </blockquote>
+        <p>You can try requesting again with updated details or a valid payment proof by visiting your <a href="${siteUrl}/settings">Settings page</a>.</p>
         <p>Best regards,<br/>The Resbonder Team</p>
       `;
         }

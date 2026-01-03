@@ -5,12 +5,13 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck } from "lucide-react";
+import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck, Image, ExternalLink, Eye, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { User } from "@supabase/supabase-js";
 
 interface UserData {
@@ -38,6 +39,27 @@ const Admin = () => {
     metaAppId: "",
     metaToken: "",
   });
+  const [viewingScreenshot, setViewingScreenshot] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [rejectingSetup, setRejectingSetup] = useState<any>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const handleViewReceipt = (receiptUrl: string | null) => {
+    if (!receiptUrl) return;
+    setViewingScreenshot(receiptUrl);
+    setCurrentImageUrl(receiptUrl);
+    setImageError(false);
+    setImageLoading(true);
+  };
+
+  const handleRetryImage = () => {
+    if (!viewingScreenshot) return;
+    setImageError(false);
+    setImageLoading(true);
+    setCurrentImageUrl(viewingScreenshot);
+  };
+
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
@@ -491,6 +513,81 @@ const Admin = () => {
     }
   };
 
+  const handleVerifyPayment = async (setupId: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('managed_setups')
+        .update({
+          payment_status: 'verified',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', setupId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Payment Verified",
+        description: "The request is now ready to be completed.",
+      });
+      loadAdminData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectSetup = async (setupId: string, reason: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('managed_setups')
+        .update({
+          status: 'rejected',
+          payment_status: 'rejected',
+          rejection_reason: reason,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', setupId);
+
+      if (error) throw error;
+
+      // Notify user via Edge Function
+      try {
+        await supabase.functions.invoke("managed-setup-notification", {
+          body: {
+            task: "reject",
+            userId: rejectingSetup.user_id,
+            email: rejectingSetup.profiles?.email,
+            reason: reason
+          },
+        });
+      } catch (notifError) {
+        console.error("Rejection notification error:", notifError);
+      }
+
+      toast({
+        title: "Request Rejected",
+        description: "The user will see the rejection status and reason.",
+      });
+      setRejectingSetup(null);
+      loadAdminData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -876,12 +973,12 @@ const Admin = () => {
         )}
 
         {/* Managed Setup Requests */}
-        {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').length > 0 && (
+        {managedSetups.filter(s => s.status === 'pending').length > 0 && (
           <Card className="mb-8 border-border/50 overflow-hidden">
             <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                Pending Managed Setups (Payment Verified)
+                Managed Setup Requests
               </h2>
             </div>
 
@@ -893,26 +990,84 @@ const Admin = () => {
                     <TableHead>User Email</TableHead>
                     <TableHead>Business Name</TableHead>
                     <TableHead>Phone Number</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').map((setup: any) => (
+                  {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
                     <TableRow key={setup.id}>
                       <TableCell className="font-medium">{setup.profiles?.email || 'N/A'}</TableCell>
                       <TableCell>{setup.business_name}</TableCell>
                       <TableCell>{setup.phone_number}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {setup.payment_status === 'verified' ? (
+                            <span className="bg-emerald-500/10 text-emerald-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified</span>
+                          ) : setup.payment_status === 'rejected' ? (
+                            <span className="bg-red-500/10 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Rejected</span>
+                          ) : (
+                            <span className="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Pending</span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{new Date(setup.created_at).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          className="bg-primary hover:bg-primary/90 text-white"
-                          onClick={() => setCompletingSetup(setup)}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1.5" />
-                          Complete Setup
-                        </Button>
+                        <div className="flex justify-end items-center gap-2">
+                          <div className="flex flex-col items-end mr-2">
+                            <span className="text-[10px] text-muted-foreground uppercase font-semibold">{setup.payment_method || 'Unknown'}</span>
+                          </div>
+
+                          {setup.receipt_url ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewReceipt(setup.receipt_url)}
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              Receipt
+                            </Button>
+                          ) : (
+                            setup.payment_method !== 'crypto' && (
+                              <span className="text-[10px] text-red-500 font-medium px-2 py-1 bg-red-500/10 rounded border border-red-500/20">
+                                No Receipt
+                              </span>
+                            )
+                          )}
+
+                          {setup.payment_status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                                onClick={() => handleVerifyPayment(setup.id)}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1.5" />
+                                Verify
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setRejectingSetup(setup)}
+                              >
+                                <XCircle className="w-4 h-4 mr-1.5" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+
+                          {setup.payment_status === 'verified' && (
+                            <Button
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90 text-white"
+                              onClick={() => setCompletingSetup(setup)}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1.5" />
+                              Complete
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -922,26 +1077,83 @@ const Admin = () => {
 
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-border/50">
-              {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').map((setup: any) => (
+              {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
                 <div key={setup.id} className="p-4 space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold truncate max-w-[200px]">{setup.profiles?.email || 'N/A'}</p>
                       <p className="text-xs font-medium text-primary">{setup.business_name}</p>
-                      <p className="text-xs text-muted-foreground">{setup.phone_number}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{setup.phone_number}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold px-1.5 py-0.5 bg-muted rounded">{setup.payment_method || 'Unknown'}</span>
+                      </div>
+                      <div className="mt-1">
+                        {setup.payment_status === 'verified' ? (
+                          <span className="bg-emerald-500/10 text-emerald-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified</span>
+                        ) : setup.payment_status === 'rejected' ? (
+                          <span className="bg-red-500/10 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Rejected</span>
+                        ) : (
+                          <span className="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Pending</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">{new Date(setup.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90 text-white w-full"
-                    onClick={() => setCompletingSetup(setup)}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1.5" />
-                    Complete Setup
-                  </Button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {setup.receipt_url ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full col-span-2"
+                        onClick={() => handleViewReceipt(setup.receipt_url)}
+                      >
+                        <Eye className="w-4 h-4 mr-1.5" />
+                        View Receipt
+                      </Button>
+                    ) : (
+                      setup.payment_method !== 'crypto' && (
+                        <div className="w-full col-span-2 py-2 text-center text-[10px] text-red-500 font-medium bg-red-500/10 rounded border border-red-500/20">
+                          Manual Payment: No Receipt Uploaded
+                        </div>
+                      )
+                    )}
+
+                    {setup.payment_status === 'pending' && (
+                      <>
+                        <Button
+                          size="sm"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white w-full"
+                          onClick={() => handleVerifyPayment(setup.id)}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1.5" />
+                          Verify
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => setRejectingSetup(setup)}
+                        >
+                          <XCircle className="w-4 h-4 mr-1.5" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+
+                    {setup.payment_status === 'verified' && (
+                      <Button
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white w-full col-span-2"
+                        onClick={() => setCompletingSetup(setup)}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1.5" />
+                        Complete Setup
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1114,6 +1326,121 @@ const Admin = () => {
           </div>
         </Card>
       </div>
+
+      {/* Screenshot Viewer Dialog */}
+      <Dialog open={!!viewingScreenshot} onOpenChange={() => {
+        setViewingScreenshot(null);
+        setImageError(false);
+        setImageLoading(false);
+        setCurrentImageUrl(null);
+      }}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden bg-card border-border">
+          <DialogHeader className="p-6 border-b border-border/50">
+            <div className="flex justify-between items-center">
+              <div>
+                <DialogTitle>Payment Receipt</DialogTitle>
+                <DialogDescription>
+                  Review the uploaded payment receipt screenshot.
+                </DialogDescription>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => window.open(viewingScreenshot || "", "_blank")}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open Full
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="p-4 bg-muted/30">
+            <div className="relative min-h-[300px] flex items-center justify-center bg-muted rounded-md overflow-hidden border border-border/50">
+              {imageLoading && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading image...</p>
+                  </div>
+                </div>
+              )}
+
+              {imageError ? (
+                <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+                  <AlertCircle className="w-12 h-12 text-destructive" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Failed to Load Image</h3>
+                    <p className="text-sm text-muted-foreground mb-4 max-w-[300px]">
+                      The payment screenshot could not be loaded. This might be due to storage permissions or the URL may be invalid.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleRetryImage}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Retry
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(viewingScreenshot || "", "_blank")}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Open in New Tab
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={currentImageUrl || viewingScreenshot || ""}
+                  alt="Payment Receipt"
+                  className="max-w-full h-auto rounded shadow-sm transition-opacity duration-300"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => {
+                    setImageError(true);
+                    setImageLoading(false);
+                  }}
+                  style={{ opacity: imageLoading ? 0 : 1 }}
+                />
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Managed Setup Dialog */}
+      <AlertDialog open={!!rejectingSetup} onOpenChange={() => setRejectingSetup(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject Managed Setup Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please provide a reason for rejecting this request. This will be shown to the user.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="rejectionReason" className="mb-2 block">Reason for Rejection</Label>
+            <Input
+              id="rejectionReason"
+              placeholder="e.g., Payment screenshot is invalid or not received"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={() => handleRejectSetup(rejectingSetup.id, rejectionReason)}
+              disabled={!rejectionReason.trim()}
+            >
+              Reject Request
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
