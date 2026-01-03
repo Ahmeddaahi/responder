@@ -9,6 +9,14 @@ import { Footer } from "@/components/ui/footer-section";
 import { FadeIn, SlideUp, SlideInLeft, SlideInRight, ScaleIn } from "@/components/ui/animate-on-scroll";
 import { supabase } from "@/integrations/supabase/client";
 import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
+import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const CountUp = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
   const ref = useRef<HTMLSpanElement>(null);
@@ -276,13 +284,13 @@ const Landing = () => {
                   style={{ aspectRatio: '1 / 1' }}
                 />
               </div>
-              <span className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent tracking-tight hidden xs:inline">
                 Resbonder
               </span>
             </div>
 
-            {/* Navigation Actions */}
-            <div className="flex items-center gap-3">
+            {/* Navigation Actions - Desktop */}
+            <div className="hidden md:flex items-center gap-3">
               <Button
                 variant="ghost"
                 onClick={() => navigate("/auth?mode=signin")}
@@ -296,6 +304,40 @@ const Landing = () => {
               >
                 Get Started
               </Button>
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Menu className="w-6 h-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-card/95 backdrop-blur-xl border-border/50">
+                  <SheetHeader>
+                    <SheetTitle className="text-left flex items-center gap-2">
+                      <img src="/favicon.webp" alt="Logo" className="w-8 h-8" />
+                      <span className="bg-gradient-primary bg-clip-text text-transparent">Resbonder</span>
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-4 mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/auth?mode=signin")}
+                      className="w-full rounded-xl justify-center font-medium"
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/auth?mode=signup")}
+                      className="w-full rounded-xl justify-center font-semibold bg-primary hover:bg-primary/90 shadow-md"
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
