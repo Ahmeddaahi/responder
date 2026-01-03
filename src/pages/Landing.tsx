@@ -580,7 +580,7 @@ const Landing = () => {
                       </div>
                       <div>
                         <h4 className="font-semibold mb-2">No Competitor Has This</h4>
-                        <p className="text-sm opacity-90">
+                        <p className="text-sm text-white/95 font-medium">
                           We're the only WhatsApp AI platform with advanced multi-language support and cultural awareness.
                         </p>
                       </div>
