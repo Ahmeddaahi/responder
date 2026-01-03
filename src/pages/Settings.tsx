@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, BookOpen, Eye, EyeOff } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import type { User } from "@supabase/supabase-js";
+import ManagedSetupModal from "@/components/ManagedSetupModal";
+import { HelpCircle } from "lucide-react";
 
 const Settings = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +23,7 @@ const Settings = () => {
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [showAppId, setShowAppId] = useState(false);
+  const [isManagedSetupOpen, setIsManagedSetupOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -338,6 +341,39 @@ const Settings = () => {
                 >
                   Save WhatsApp Settings
                 </Button>
+
+                {/* Managed Setup Section */}
+                <div className="mt-8 pt-8 border-t border-border">
+                  <div className="bg-primary/5 rounded-xl p-4 sm:p-6 border border-primary/10">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <HelpCircle className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground">Can't find your Meta IDs?</h3>
+                        <p className="text-sm text-muted-foreground mt-1 mb-4">
+                          Don't worry! If you're not technical, our team can handle the entire WhatsApp setup for you.
+                          Just give us your business details, and we'll do the rest.
+                        </p>
+                        <Button
+                          variant="outline"
+                          className="border-primary/50 text-primary hover:bg-primary/5"
+                          onClick={() => setIsManagedSetupOpen(true)}
+                        >
+                          We can do it for you
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {user && (
+                  <ManagedSetupModal
+                    isOpen={isManagedSetupOpen}
+                    onClose={() => setIsManagedSetupOpen(false)}
+                    userId={user.id}
+                  />
+                )}
               </div>
             </Card>
           </div>

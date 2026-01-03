@@ -30,7 +30,14 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState<UserData[]>([]);
   const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
+  const [managedSetups, setManagedSetups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completingSetup, setCompletingSetup] = useState<any | null>(null);
+  const [setupCreds, setSetupCreds] = useState({
+    phoneNumberId: "",
+    metaAppId: "",
+    metaToken: "",
+  });
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
@@ -155,6 +162,33 @@ const Admin = () => {
         monthlyRevenue,
         pendingPayments,
       });
+
+      // Load managed setups
+      const { data: managedData, error: managedError } = await supabase
+        .from('managed_setups')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (managedError) {
+        console.error('Failed to load managed setups:', managedError);
+      } else {
+        // Fetch user emails separately
+        const setupsWithEmails = await Promise.all(
+          (managedData || []).map(async (setup: any) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('email')
+              .eq('id', setup.user_id)
+              .single();
+
+            return {
+              ...setup,
+              profiles: profile
+            };
+          })
+        );
+        setManagedSetups(setupsWithEmails);
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -379,6 +413,83 @@ const Admin = () => {
       });
     }
   };
+  const completeManagedSetup = async () => {
+    if (!completingSetup) return;
+
+    try {
+      setLoading(true);
+      const { phoneNumberId, metaAppId, metaToken } = setupCreds;
+
+      if (!phoneNumberId || !metaAppId || !metaToken) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all credentials",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const webhookUrl = `${supabaseUrl}/functions/v1/whatsapp-webhook`;
+
+      // Update user agents table
+      const { error: agentError } = await supabase
+        .from('agents')
+        .upsert({
+          user_id: completingSetup.user_id,
+          platform: 'whatsapp',
+          phone_number: completingSetup.phone_number,
+          phone_number_id: phoneNumberId,
+          meta_app_id: metaAppId,
+          meta_token: metaToken,
+          webhook_url: webhookUrl,
+          is_active: true,
+        }, {
+          onConflict: 'user_id,platform'
+        });
+
+      if (agentError) throw agentError;
+
+      // Update managed setup status
+      const { error: setupError } = await supabase
+        .from('managed_setups')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('id', completingSetup.id);
+
+      if (setupError) throw setupError;
+
+      // Notify user via Edge Function
+      try {
+        await supabase.functions.invoke("managed-setup-notification", {
+          body: {
+            task: "complete",
+            userId: completingSetup.user_id,
+            email: completingSetup.profiles?.email
+          },
+        });
+      } catch (notifError) {
+        console.error("Completion notification error:", notifError);
+      }
+
+      toast({
+        title: "Setup Completed!",
+        description: `WhatsApp configuration applied for ${completingSetup.profiles?.email}`,
+      });
+
+      setCompletingSetup(null);
+      setSetupCreds({ phoneNumberId: "", metaAppId: "", metaToken: "" });
+      loadAdminData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -543,6 +654,50 @@ const Admin = () => {
             >
               <Save className="w-4 h-4 mr-2" />
               Save Changes
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Managed Setup Completion Dialog */}
+      <AlertDialog open={!!completingSetup} onOpenChange={(open) => !open && setCompletingSetup(null)}>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete WhatsApp Setup</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter Meta credentials for {completingSetup?.profiles?.email}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Phone Number ID</Label>
+              <Input
+                placeholder="815809944955466"
+                value={setupCreds.phoneNumberId}
+                onChange={(e) => setSetupCreds({ ...setupCreds, phoneNumberId: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Meta App ID</Label>
+              <Input
+                placeholder="Your Meta App ID"
+                value={setupCreds.metaAppId}
+                onChange={(e) => setSetupCreds({ ...setupCreds, metaAppId: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Meta Access Token</Label>
+              <Input
+                placeholder="EAAG..."
+                value={setupCreds.metaToken}
+                onChange={(e) => setSetupCreds({ ...setupCreds, metaToken: e.target.value })}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button onClick={completeManagedSetup} disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Apply & Complete
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -714,6 +869,79 @@ const Admin = () => {
                       Reject
                     </Button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Managed Setup Requests */}
+        {managedSetups.filter(s => s.status === 'pending').length > 0 && (
+          <Card className="mb-8 border-border/50 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                Pending Managed Setups
+              </h2>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User Email</TableHead>
+                    <TableHead>Business Name</TableHead>
+                    <TableHead>Phone Number</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
+                    <TableRow key={setup.id}>
+                      <TableCell className="font-medium">{setup.profiles?.email || 'N/A'}</TableCell>
+                      <TableCell>{setup.business_name}</TableCell>
+                      <TableCell>{setup.phone_number}</TableCell>
+                      <TableCell className="text-muted-foreground">{new Date(setup.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white"
+                          onClick={() => setCompletingSetup(setup)}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1.5" />
+                          Complete Setup
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-border/50">
+              {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
+                <div key={setup.id} className="p-4 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold truncate max-w-[200px]">{setup.profiles?.email || 'N/A'}</p>
+                      <p className="text-xs font-medium text-primary">{setup.business_name}</p>
+                      <p className="text-xs text-muted-foreground">{setup.phone_number}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">{new Date(setup.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-white w-full"
+                    onClick={() => setCompletingSetup(setup)}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    Complete Setup
+                  </Button>
                 </div>
               ))}
             </div>
