@@ -876,12 +876,12 @@ const Admin = () => {
         )}
 
         {/* Managed Setup Requests */}
-        {managedSetups.filter(s => s.status === 'pending').length > 0 && (
+        {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').length > 0 && (
           <Card className="mb-8 border-border/50 overflow-hidden">
             <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                Pending Managed Setups
+                Pending Managed Setups (Payment Verified)
               </h2>
             </div>
 
@@ -898,7 +898,7 @@ const Admin = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
+                  {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').map((setup: any) => (
                     <TableRow key={setup.id}>
                       <TableCell className="font-medium">{setup.profiles?.email || 'N/A'}</TableCell>
                       <TableCell>{setup.business_name}</TableCell>
@@ -922,7 +922,7 @@ const Admin = () => {
 
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-border/50">
-              {managedSetups.filter(s => s.status === 'pending').map((setup: any) => (
+              {managedSetups.filter(s => s.status === 'pending' && s.payment_status === 'verified').map((setup: any) => (
                 <div key={setup.id} className="p-4 space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">

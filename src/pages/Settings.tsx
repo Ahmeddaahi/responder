@@ -24,6 +24,7 @@ const Settings = () => {
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [showAppId, setShowAppId] = useState(false);
   const [isManagedSetupOpen, setIsManagedSetupOpen] = useState(false);
+  const [hasPendingSetup, setHasPendingSetup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,6 +45,16 @@ const Settings = () => {
   const loadSettings = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
+
+    // Check for pending managed setup
+    const { data: pendingSetup } = await supabase
+      .from('managed_setups')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    setHasPendingSetup(!!pendingSetup);
 
     // Load agent settings for both platforms
     const { data: agentData } = await supabase
@@ -351,17 +362,36 @@ const Settings = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-foreground">Can't find your Meta IDs?</h3>
-                        <p className="text-sm text-muted-foreground mt-1 mb-4">
-                          Don't worry! If you're not technical, our team can handle the entire WhatsApp setup for you.
-                          Just give us your business details, and we'll do the rest.
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="border-primary/50 text-primary hover:bg-primary/5"
-                          onClick={() => setIsManagedSetupOpen(true)}
-                        >
-                          We can do it for you
-                        </Button>
+                        {hasPendingSetup ? (
+                          <div className="mt-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                              <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-500">
+                                Setup Request Pending
+                              </p>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Your request has been received! Our team is working on setting up your WhatsApp Business API.
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              ⏱️ Estimated wait time: 15-60 minutes. You will receive an email notification once your setup is complete.
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm text-muted-foreground mt-1 mb-4">
+                              Don't worry! If you're not technical, our team can handle the entire WhatsApp setup for you.
+                              Just give us your business details, and we'll do the rest.
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="border-primary/50 text-primary hover:bg-primary/5"
+                              onClick={() => setIsManagedSetupOpen(true)}
+                            >
+                              We can do it for you
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -372,6 +402,7 @@ const Settings = () => {
                     isOpen={isManagedSetupOpen}
                     onClose={() => setIsManagedSetupOpen(false)}
                     userId={user.id}
+                    onSuccess={loadSettings}
                   />
                 )}
               </div>
