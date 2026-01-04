@@ -445,8 +445,29 @@ Answer questions based ONLY on the information provided below. Extract and prese
             }
         }
 
-        context += '6. IMPORTANT: You MUST search the knowledge base content above before saying information is not available. Do not default to contact information - first check if the product exists in the knowledge base.\n';
-        context += '7. Only provide information that exists in the knowledge base content above. If information is truly not available, then politely say so.';
+        context += '7. Only provide information that exists in the knowledge base content above. If information is truly not available, then politely say so.\n';
+        context += `8. **BOOKING & APPOINTMENT PROCESS (MANDATORY)**: When a customer wants to book or schedule an appointment (e.g., hotel room, restaurant table, doctor visit):\n`;
+        context += `   - **STEP 1: COLLECT INFO**: Politely ask for any missing information one by one (don\'t overwhelm them):\n`;
+        context += `     - Full Name\n`;
+        context += `     - Date (ensure it follows "Date handling rules" above)\n`;
+        context += `     - Time\n`;
+        context += `     - Number of guests/people (Mandatory for Hotels and Restaurants)\n`;
+        context += `     - Service/Room type (if applicable)\n`;
+        context += `   - **IMPORTANT: UNDERSTAND BRIEF/NUMERICAL RESPONSES**: If you ask a question and the customer provides a short, direct answer, you MUST understand it. Examples:\n`;
+        context += `     - If you ask "How many guests?" and they say "2" or "1", accept it as the guest count.\n`;
+        context += `     - If you ask "What is your name?" and they say "Ahmed", accept it as the name.\n`;
+        context += `     - If you ask "When do you want to book?" and they say "Berri" or "Tomorrow", accept it as the date.\n`;
+        context += `   - **STEP 2: PRESENT SUMMARY**: Once ALL information (Name, Date, Time, Guests, Service) is collected, you **MUST** present a clear summary to the customer.\n`;
+        if (forcedLanguage === 'somali') {
+            context += `     - Somali Example: "Fadlan hubi macluumaadkaaga:\n\nMagaca: [Magaca]\nTaariikhda: [Taariikhda]\nWaqtiga: [Waqtiga]\nMartida: [Martida]\nAdeegga: [Adeegga]\n\nMa xaqiijinysaa ballantan/Ma saxbaa ballankan?"\n`;
+        } else {
+            context += `     - English Example: "Please confirm your booking details:\n\nName: [Name]\nDate: [Date]\nTime: [Time]\nGuests: [Guests]\nService: [Service]\n\nDo you want to confirm this booking?"\n`;
+        }
+        context += `   - **STEP 3: WAIT FOR CONFIRMATION**: You MUST wait for the customer to explicitly say "Yes", "Confirm", "Haa", "Xaqiiji", "Waa sax", or similar.\n`;
+        context += `   - **STEP 4: FINALIZATION**: Only after confirmation, respond politely saying the booking is noted/completed and thanked them.\n`;
+        context += `   - **CRITICAL**: Do NOT jump to Step 4 without a summary and explicit confirmation from the customer.`;
+
+
 
         // Add enhanced Somali language instructions if language is Somali
         if (forcedLanguage === 'somali') {

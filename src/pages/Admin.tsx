@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck, Image, ExternalLink, Eye, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck, Image, ExternalLink, Eye, AlertCircle, Loader2, RefreshCw, Zap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
@@ -623,6 +623,10 @@ const Admin = () => {
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Verify Payments
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/promo-codes")} className="text-sm">
+                <Zap className="w-4 h-4 mr-2" />
+                Promo Codes
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="text-sm">
                 <LayoutDashboard className="w-4 h-4 mr-2" />
                 Dashboard
@@ -645,6 +649,10 @@ const Admin = () => {
                   <DropdownMenuItem onClick={() => navigate("/admin/payments")}>
                     <ShieldCheck className="w-4 h-4 mr-2" />
                     Verify Payments
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin/promo-codes")}>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Promo Codes
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <LayoutDashboard className="w-4 h-4 mr-2" />

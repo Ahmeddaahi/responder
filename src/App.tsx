@@ -32,6 +32,9 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmailVerificationSent = lazy(() => import("./pages/EmailVerificationSent"));
 const EmailVerificationRequired = lazy(() => import("./pages/EmailVerificationRequired"));
 
+
+const AdminPromoCodes = lazy(() => import("./pages/AdminPromoCodes"));
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -59,7 +62,9 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/admin/promo-codes" element={<ProtectedRoute><AdminPromoCodes /></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute><PaymentVerification /></ProtectedRoute>} />
             <Route path="/admin/crypto-payments" element={<ProtectedRoute><CryptoPayments /></ProtectedRoute>} />
             <Route path="/payment/success" element={<PaymentSuccess />} />

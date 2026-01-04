@@ -8,8 +8,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToCloudflare } from "@/integrations/cloudflare/client";
-import { Loader2, Upload, Check, CheckCircle } from "lucide-react";
+import { Loader2, Upload, Check, CheckCircle, Zap, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -33,8 +34,81 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
     const [paymentPhone, setPaymentPhone] = useState("");
     const [creatingPremierBankOrder, setCreatingPremierBankOrder] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
+
+    // Promo Code State
+    const [promoCode, setPromoCode] = useState("");
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [appliedPromo, setAppliedPromo] = useState<any>(null);
+    const [discountedAmount, setDiscountedAmount] = useState<number | null>(null);
+    const [adminId, setAdminId] = useState<string | null>(null);
+
     const { toast } = useToast();
     const navigate = useNavigate();
+
+    // Fetch Admin ID for SAAS-level promo codes
+    const fetchAdminId = async () => {
+        const { data } = await supabase
+            .from('user_roles')
+            .select('user_id')
+            .eq('role', 'admin')
+            .limit(1)
+            .maybeSingle();
+        if (data) setAdminId(data.user_id);
+    };
+
+    const handleValidatePromo = async () => {
+        if (!promoCode.trim()) return;
+
+        setIsValidatingPromo(true);
+        try {
+            if (!adminId) await fetchAdminId();
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Not authenticated");
+
+            const { data, error } = await supabase.functions.invoke('validate-promo-code', {
+                body: {
+                    code: promoCode,
+                    customerId: user.id,
+                    merchantId: adminId, // For SAAS plans, merchant is the SAAS admin
+                    amount: parseFloat(amount),
+                    planType: planName.toLowerCase(),
+                }
+            });
+
+            if (error) throw error;
+
+            if (data.valid) {
+                setAppliedPromo(data);
+                setDiscountedAmount(data.finalAmount);
+                toast({
+                    title: "Promo Code Applied!",
+                    description: data.message,
+                });
+            } else {
+                toast({
+                    title: "Invalid Code",
+                    description: data.message,
+                    variant: "destructive",
+                });
+            }
+        } catch (error: any) {
+            console.error('Promo validation error:', error);
+            toast({
+                title: "Error",
+                description: "Failed to validate promo code",
+                variant: "destructive",
+            });
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
+    const removePromo = () => {
+        setAppliedPromo(null);
+        setDiscountedAmount(null);
+        setPromoCode("");
+    };
 
     const handleMethodSelect = async (method: PaymentMethod) => {
         setPaymentMethod(method);
@@ -266,11 +340,12 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
                     requested_plan: requestedPlan,
                     current_plan: currentPlan,
                     payment_method: paymentMethod,
-                    amount: parseFloat(amount),
+                    amount: discountedAmount || parseFloat(amount),
                     billing_cycle: billingCycle,
                     receipt_url: publicUrl,
                     payment_name: paymentName.trim(),
                     payment_phone: paymentPhone.trim(),
+                    promo_code: appliedPromo?.code || null,
                     status: 'pending'
                 })
                 .select()) as any;
@@ -278,6 +353,18 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
             if (dbError) {
                 console.error('Database insert error:', dbError);
                 throw new Error(`Failed to save payment request: ${dbError.message}`);
+            }
+
+            // 3. Record promo usage if applied
+            if (appliedPromo) {
+                await supabase.functions.invoke('apply-promo-code', {
+                    body: {
+                        promoId: appliedPromo.promoId,
+                        customerId: user.id,
+                        discountAmount: appliedPromo.discountAmount,
+                        // paymentRequestId: paymentData?.[0]?.id // Optional
+                    }
+                });
             }
 
             // Send admin notification email
@@ -481,6 +568,42 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
                     ))}
                 </div>
 
+                {/* Promo Code Input */}
+                <div className="space-y-3 p-4 bg-muted/30 rounded-xl border border-border/50">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-primary" />
+                        Have a promo code?
+                    </Label>
+                    {!appliedPromo ? (
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Enter code"
+                                value={promoCode}
+                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                className="h-9"
+                                disabled={isValidatingPromo}
+                            />
+                            <Button
+                                size="sm"
+                                onClick={handleValidatePromo}
+                                disabled={isValidatingPromo || !promoCode.trim()}
+                            >
+                                {isValidatingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg border border-primary/20">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-primary tracking-wider uppercase">{appliedPromo.code}</span>
+                                <span className="text-[10px] text-muted-foreground">{appliedPromo.message}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={removePromo}>
+                                <X className="w-3 h-3" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
                 <Button
                     className="w-full"
                     disabled={!paymentMethod || paymentMethod === 'crypto' || paymentMethod === 'premierbank' || creatingCryptoOrder || creatingPremierBankOrder}
@@ -508,7 +631,16 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
                 <div className="bg-muted/50 p-4 rounded-lg space-y-4">
                     <div className="flex justify-between items-center border-b border-border pb-2">
                         <span className="text-muted-foreground">Amount to Pay:</span>
-                        <span className="text-xl font-bold text-primary">${amount}</span>
+                        <div className="text-right">
+                            {discountedAmount !== null ? (
+                                <div className="flex flex-col items-end">
+                                    <span className="text-xs text-muted-foreground line-through">${amount}</span>
+                                    <span className="text-xl font-bold text-emerald-500">${discountedAmount}</span>
+                                </div>
+                            ) : (
+                                <span className="text-xl font-bold text-primary">${amount}</span>
+                            )}
+                        </div>
                     </div>
 
                     <div className="space-y-3">

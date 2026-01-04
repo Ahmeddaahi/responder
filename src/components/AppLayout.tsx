@@ -168,6 +168,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       icon: Calendar,
       path: "/bookings",
     },
+
     {
       title: "Messages",
       icon: MessageSquare,
