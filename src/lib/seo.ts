@@ -28,13 +28,13 @@ export const updateTitle = (title: string): void => {
  */
 const updateMetaTag = (name: string, content: string, attribute: string = "name"): void => {
   let element = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement;
-  
+
   if (!element) {
     element = document.createElement("meta");
     element.setAttribute(attribute, name);
     document.head.appendChild(element);
   }
-  
+
   element.setAttribute("content", content);
 };
 
@@ -43,13 +43,13 @@ const updateMetaTag = (name: string, content: string, attribute: string = "name"
  */
 const updateLinkTag = (rel: string, href: string): void => {
   let element = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement;
-  
+
   if (!element) {
     element = document.createElement("link");
     element.setAttribute("rel", rel);
     document.head.appendChild(element);
   }
-  
+
   element.setAttribute("href", href);
 };
 
@@ -152,7 +152,7 @@ export const SEO_CONFIGS: Record<string, SEOConfig> = {
  */
 export const applySEOForRoute = (pathname: string): void => {
   const config = SEO_CONFIGS[pathname];
-  
+
   if (config) {
     updateSEO(config);
   } else {

@@ -16,7 +16,7 @@ const EmailVerificationRequired = () => {
   useEffect(() => {
     const checkVerificationStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         // No user session, redirect to auth
         navigate("/auth");
