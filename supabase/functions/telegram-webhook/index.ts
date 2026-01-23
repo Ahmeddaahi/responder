@@ -270,7 +270,7 @@ serve(async (req) => {
 
         // Build context
         const languageHeader = forcedLanguage === 'somali'
-            ? '=== YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY set to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. Use polite, clear, business-appropriate Somali. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
+            ? '=== YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY set to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. Use polite, clear, natural, and business-appropriate Somali. Use "Walaal" to address customers politely. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
             : '=== YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY set to English. You MUST respond ONLY in English. DO NOT include Somali translations. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
         // Get current date and relative dates for the prompt
@@ -342,6 +342,10 @@ BOOKING FLOW RULES:
 - Only after confirmation, treat the booking as confirmed in your answer.
 - If the customer changes a detail, update that detail and repeat the new summary.
 - When there is NO booking intent, behave as a normal Q&A assistant using the business information and products below.
+
+=== SOMALI LANGUAGE TIPS (CRITICAL) ===
+- When asking for the customer's name, ALWAYS use: "fadlan magacaaga oo dhamaystrin?"
+- Use "Walaal" (brother/sister) to be more polite and warm.
 
 === AI OUTPUT CONTRACT (CRITICAL) ===
 Every response you send MUST consist of two parts:

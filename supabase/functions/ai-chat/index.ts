@@ -210,7 +210,7 @@ serve(async (req) => {
         // Optimized to reduce token usage while maintaining context
         // Add language requirement at the very beginning
         const languageHeader = forcedLanguage === 'somali'
-            ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, business-appropriate Somali. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
+            ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, natural, and business-appropriate Somali. Use "Walaal" to address customers politely. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
             : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
         // Get current date and relative dates for the prompt
@@ -479,6 +479,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
         }
         context += `   - **STEP 3: WAIT FOR CONFIRMATION**: You MUST wait for the customer to explicitly say "Yes", "Confirm", "Haa", "Xaqiiji", "Waa sax", or similar.\n`;
         context += `   - **STEP 4: FINALIZATION**: Only after confirmation, respond politely saying the booking is noted/completed and thanked them.\n`;
+        context += `   - **SOMALI LANGUAGE TIPS (CRITICAL)**: When asking for the customer's name, ALWAYS use: "fadlan magacaaga oo dhamaystrin?". Use "Walaal" (brother/sister) to be more polite and warm.\n`;
         context += `   - **CRITICAL**: Do NOT jump to Step 4 without a summary and explicit confirmation from the customer.`;
 
 
