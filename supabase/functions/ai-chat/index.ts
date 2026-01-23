@@ -213,25 +213,39 @@ serve(async (req) => {
             ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, business-appropriate Somali. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
             : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
 
-        // Get current date for the prompt
+        // Get current date and relative dates for the prompt
+        // Using Africa/Addis_Ababa (UTC+3) as per existing code
         const now = new Date();
-        const options: Intl.DateTimeFormatOptions = {
+        const formatter = new Intl.DateTimeFormat('en-GB', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
             timeZone: 'Africa/Addis_Ababa'
-        };
-        const todayDate = now.toLocaleDateString('en-GB', options);
+        });
+
+        const todayDate = formatter.format(now);
+
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowDate = formatter.format(tomorrow);
+
+        const dayAfterTomorrow = new Date(now);
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+        const dayAfterTomorrowDate = formatter.format(dayAfterTomorrow);
 
         let context = languageHeader + `You are a helpful business assistant chatbot.
 
-Current date: ${todayDate}
-Timezone: Africa/Addis_Ababa (UTC+3)
+RELEVANT DATES:
+- Today: ${todayDate}
+- Tomorrow: ${tomorrowDate}
+- Day After Tomorrow: ${dayAfterTomorrowDate}
+- Timezone: Africa/Addis_Ababa (UTC+3)
 
 Date handling rules:
-- If the user says "today", use today’s date (${todayDate}).
-- If the user says "tomorrow", add 1 day to today’s date.
-- If the user says "next week", add 7 days.
+- If the user says "today", use ${todayDate}.
+- If the user says "tomorrow", use ${tomorrowDate}.
+- If the user says "day after tomorrow", use ${dayAfterTomorrowDate}.
+- If the user says "next week", add 7 days to ${todayDate}.
 - If the user mentions a day or month without a year, ALWAYS assume the current year (${now.getFullYear()}).
 - NEVER select a past date.
 - If the calculated date is in the past, move it to the next valid future date.
