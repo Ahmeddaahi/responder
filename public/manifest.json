@@ -1,0 +1,35 @@
+{
+    "name": "Responder AI",
+    "short_name": "Responder",
+    "description": "AI Chat and Management Platform",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#06200c",
+    "theme_color": "#06200c",
+    "icons": [
+        {
+            "src": "/pwa-192x192.png?v=2",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/pwa-192x192.png?v=2",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/pwa-512x512.png?v=2",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/pwa-512x512.png?v=2",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
