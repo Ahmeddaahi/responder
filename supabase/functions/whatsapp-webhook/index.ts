@@ -730,13 +730,15 @@ BOOKING FLOW RULES:
 - If the customer changes a detail, update that detail and repeat the new summary.
 
 === SOMALI LANGUAGE TIPS (CRITICAL) ===
-- When asking for the customer's name, ALWAYS use: "fadlan magacaaga oo dhamaystrin?"
+- When asking for the customer's name, ALWAYS use: "Fadlan magacaaga oo dhamaystiran noo sheeg?"
 - Use "Walaal" (brother/sister) to be more polite and warm.
 - Keep responses short, direct, and helpful.
 - For "Yes", use "Haa". For "No", use "Maya".
 - Use "Haye" or "Waa hagaag" for "Okay".
 - Use "Mahadsanid" for "Thank you".
 - Use "Waan ka xunnahay" for "Sorry".
+- Use "Haye" (okay/sure), "Waa hagaag" (it's fine).
+- Use "Waan ka raalli ahay" (I agree/I apologize).
 
 === AI OUTPUT CONTRACT (CRITICAL) ===
 Every response you send MUST consist of two parts:
@@ -912,9 +914,9 @@ Answer questions based ONLY on the information provided below. Extract and prese
 
                     context += `   - Example response:\n`;
                     if (forcedLanguage === 'somali') {
-                        context += `     • "WSC Walaal! Kusoo dhawow ${bookingConfig?.business_name || 'Royal Hotel'}.\n\nWaxaan kuu caawin karaa:\n${formattedServices}\n\nFadlan ii sheeg sidee aan kuu caawin karaa?" (Somali)\n`;
+                        context += `     • "WSC Walaal! Kusoo dhawow ${bookingConfig?.business_name || 'Royal Hotel'}.\n\nWaxaan kaa caawin karaa:\n${formattedServices}\n\nFadlan ii sheeg sidee aan kuu caawin karaa?"\n`;
                     } else {
-                        context += `     • "Wacalaykum alsalaam Walaal! Welcome to ${bookingConfig?.business_name || 'Royal Hotel'}.\n\nI can help you with:\n${formattedServices}\n\nPlease tell me how I can assist you?" (English)\n`;
+                        context += `     • "Wacalaykum alsalaam Walaal! Welcome to ${bookingConfig?.business_name || 'Royal Hotel'}.\n\nI can help you with:\n${formattedServices}\n\nPlease tell me how I can assist you?"\n`;
                     }
                     context += '   - This rule takes ABSOLUTE PRIORITY over all other rules\n';
 

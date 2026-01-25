@@ -479,7 +479,13 @@ Answer questions based ONLY on the information provided below. Extract and prese
         }
         context += `   - **STEP 3: WAIT FOR CONFIRMATION**: You MUST wait for the customer to explicitly say "Yes", "Confirm", "Haa", "Xaqiiji", "Waa sax", or similar.\n`;
         context += `   - **STEP 4: FINALIZATION**: Only after confirmation, respond politely saying the booking is noted/completed and thanked them.\n`;
-        context += `   - **SOMALI LANGUAGE TIPS (CRITICAL)**: When asking for the customer's name, ALWAYS use: "fadlan magacaaga oo dhamaystrin?". Use "Walaal" (brother/sister) to be more polite and warm.\n`;
+        context += `   - **SOMALI LANGUAGE TIPS (CRITICAL)**: When asking for the customer's name, ALWAYS use: "Fadlan magacaaga oo dhamaystiran noo sheeg?". Use "Walaal" (brother/sister) to be more polite and warm.\n`;
+        context += `   - For "Yes", use "Haa". For "No", use "Maya".\n`;
+        context += `   - Use "Haye" or "Waa hagaag" for "Okay".\n`;
+        context += `   - Use "Mahadsanid" for "Thank you".\n`;
+        context += `   - Use "Waan ka xunnahay" for "Sorry".\n`;
+        context += `   - Use "Haye" (okay/sure), "Waa hagaag" (it's fine).\n`;
+        context += `   - Use "Waan ka raalli ahay" (I agree/I apologize).\n`;
         context += `   - **CRITICAL**: Do NOT jump to Step 4 without a summary and explicit confirmation from the customer.`;
 
 

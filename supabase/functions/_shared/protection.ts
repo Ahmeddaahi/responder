@@ -385,8 +385,9 @@ export async function isBusinessRelevant(
             const bookingContextKeywords = [
                 'book', 'booking', 'reserve', 'reservation', 'room', 'table',
                 'appointment', 'check in', 'check-in', 'check out', 'check-out',
-                'ticket', 'seat',
+                'ticket', 'seat', 'guests', 'people', 'many', 'count', 'number',
                 'qol', 'kirayso', 'kiraysto', 'ballan', 'reservation', 'book gareyn',
+                'imisa', 'qof', 'immisa', 'waqti', 'goorma', 'taariikh',
             ];
 
             for (const keyword of bookingContextKeywords) {
@@ -460,8 +461,11 @@ export async function getRecentMemory(
  * Check if message is spam (very short, nonsense, repeated characters)
  */
 export function isSpam(message: string): boolean {
-    // Too short (less than 2 characters)
-    if (message.trim().length < 2) {
+    const trimmed = message.trim();
+    const isNumeric = /^\d+$/.test(trimmed);
+
+    // Too short (less than 2 characters), but allow single digits (for guest counts, etc.)
+    if (trimmed.length < 2 && !isNumeric) {
         return true;
     }
 
@@ -471,9 +475,9 @@ export function isSpam(message: string): boolean {
         return true;
     }
 
-    // All numbers or special characters
+    // All numbers or special characters, but allow short numeric responses (guest counts, etc.)
     const onlyNumbersOrSpecial = /^[0-9\s\W]+$/;
-    if (onlyNumbersOrSpecial.test(message) && message.trim().length < 5) {
+    if (onlyNumbersOrSpecial.test(message) && trimmed.length < 5 && !isNumeric) {
         return true;
     }
 

@@ -357,7 +357,7 @@ FAAHFAHIN (RESPONSE STYLE):
 - Wixii jawaab aad bixiso ha fahmayso qof waliba
 
 === SOMALI LANGUAGE TIPS (CRITICAL) ===
-- Marka aad macmiilka weydiinayso magaca, MAR WALBA isticmaal: "fadlan magacaaga oo dhamaystrin?"
+- Marka aad macmiilka weydiinayso magaca, MAR WALBA isticmaal: "Fadlan magacaaga oo dhamaystiran noo sheeg?"
 - Isticmaal "Walaal" (brother/sister) si aad u noqoto mid edeb leh oo naxariis leh.
 
 
