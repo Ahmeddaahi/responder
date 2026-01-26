@@ -284,7 +284,7 @@ const AdminPromoCodes = () => {
             <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                     <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
+                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="hidden sm:flex">
                             <ChevronLeft className="w-5 h-5" />
                         </Button>
                         <div className="flex items-center gap-2">
@@ -294,10 +294,15 @@ const AdminPromoCodes = () => {
                             </span>
                         </div>
                     </div>
-                    <Button onClick={() => navigate("/admin")} variant="outline" size="sm">
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        Back to Admin
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => navigate("/admin")} variant="ghost" size="icon" className="sm:hidden">
+                            <ChevronLeft className="w-6 h-6" />
+                        </Button>
+                        <Button onClick={() => navigate("/admin")} variant="outline" size="sm" className="hidden sm:flex">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                            Back to Admin
+                        </Button>
+                    </div>
                 </div>
             </header>
 

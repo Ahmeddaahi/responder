@@ -417,11 +417,14 @@ const PaymentVerification = () => {
                         </span>
                     </div>
                     <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                        <Button variant="ghost" onClick={() => navigate("/admin")} className="text-xs sm:text-sm">
+                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="sm:hidden">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        <Button variant="ghost" onClick={() => navigate("/admin")} className="text-xs sm:text-sm hidden sm:flex">
                             <ArrowLeft className="w-4 h-4 sm:mr-2" />
                             <span className="hidden sm:inline">Back to Admin</span>
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-10 sm:w-10">
+                        <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-10 sm:w-10 hidden sm:flex">
                             <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                         </Button>
                     </div>

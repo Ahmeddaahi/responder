@@ -637,8 +637,8 @@ const Admin = () => {
             <div className="lg:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
-                    <Menu className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9">
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
