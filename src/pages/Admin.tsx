@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck, Image, ExternalLink, Eye, AlertCircle, Loader2, RefreshCw, Zap } from "lucide-react";
+import { Edit, CheckCircle, XCircle, Clock, Save, Bot, LogOut, Users, TrendingUp, MessageSquare, DollarSign, Menu, LayoutDashboard, CreditCard, ShieldCheck, Image, ExternalLink, Eye, AlertCircle, Loader2, RefreshCw, Zap, ChevronLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
