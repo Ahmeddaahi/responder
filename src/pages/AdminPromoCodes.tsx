@@ -283,8 +283,22 @@ const AdminPromoCodes = () => {
         <div className="min-h-screen bg-background">
             <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="hidden sm:flex">
+                    {/* Mobile: Back on Left, Title on Right */}
+                    <div className="flex sm:hidden items-center justify-between w-full">
+                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="h-9 w-9">
+                            <ChevronLeft className="w-6 h-6" />
+                        </Button>
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                                SAAS Promo Codes
+                            </span>
+                            <Bot className="w-5 h-5 text-primary" />
+                        </div>
+                    </div>
+
+                    {/* Desktop: Original Layout */}
+                    <div className="hidden sm:flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
                             <ChevronLeft className="w-5 h-5" />
                         </Button>
                         <div className="flex items-center gap-2">
@@ -294,15 +308,10 @@ const AdminPromoCodes = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => navigate("/admin")} variant="ghost" size="icon" className="sm:hidden">
-                            <ChevronLeft className="w-6 h-6" />
-                        </Button>
-                        <Button onClick={() => navigate("/admin")} variant="outline" size="sm" className="hidden sm:flex">
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            Back to Admin
-                        </Button>
-                    </div>
+                    <Button onClick={() => navigate("/admin")} variant="outline" size="sm" className="hidden sm:flex">
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Back to Admin
+                    </Button>
                 </div>
             </header>
 

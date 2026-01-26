@@ -603,7 +603,58 @@ const Admin = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2 min-w-0">
+          {/* Mobile: Menu & Back on Left, Title on Right */}
+          <div className="flex lg:hidden items-center justify-between w-full">
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/admin/crypto-payments")}>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Crypto Payments
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin/payments")}>
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                    Verify Payments
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin/promo-codes")}>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Promo Codes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/dashboard")}
+                title="Back to Dashboard"
+                className="h-9 w-9"
+              >
+                <LayoutDashboard className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                Resbonder Admin
+              </span>
+              <div className="p-1 bg-primary/10 rounded-lg">
+                <Bot className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Original Layout */}
+          <div className="hidden lg:flex items-center gap-2 min-w-0">
             <div className="p-1.5 bg-primary/10 rounded-lg">
               <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
             </div>
@@ -612,9 +663,8 @@ const Admin = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => navigate("/admin/crypto-payments")} className="text-sm">
                 <CreditCard className="w-4 h-4 mr-2" />
                 Crypto Payments
@@ -633,41 +683,6 @@ const Admin = () => {
               </Button>
             </div>
 
-            {/* Mobile/Tablet Menu */}
-            <div className="lg:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9">
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/admin/crypto-payments")}>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Crypto Payments
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/admin/payments")}>
-                    <ShieldCheck className="w-4 h-4 mr-2" />
-                    Verify Payments
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/admin/promo-codes")}>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Promo Codes
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Logout Button (Desktop) */}
             <div className="hidden sm:block">
               <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 text-muted-foreground hover:text-destructive">
                 <LogOut className="w-4 h-4" />
