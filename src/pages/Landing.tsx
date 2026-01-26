@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone, DollarSign, Coins, Star, Rocket, ArrowUpRight, AlertCircle } from "lucide-react";
+import { Bot, MessageSquare, Zap, Shield, TrendingUp, Check, ChevronDown, Mail, Phone, DollarSign, Coins, Star, Rocket, ArrowUpRight, AlertCircle, Loader2 } from "lucide-react";
 import { animate } from "framer-motion";
 import SplitText from "@/components/SplitText";
 import { Footer } from "@/components/ui/footer-section";
@@ -10,6 +10,7 @@ import { FadeIn, SlideUp, SlideInLeft, SlideInRight, ScaleIn } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { DecorativePlatformIcons } from "@/components/DecorativePlatformIcons";
 import { Menu } from "lucide-react";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import {
   Sheet,
   SheetContent,
@@ -43,9 +44,28 @@ const CountUp = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: 
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { isVerified, isLoading, user, isOAuthUser } = useEmailVerification();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [currency, setCurrency] = useState<'USD' | 'ETB'>('USD');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
+
+  useEffect(() => {
+    // If the user is authenticated and verified (or OAuth), redirect to dashboard
+    if (!isLoading && user && (isVerified || isOAuthUser)) {
+      window.location.replace("/dashboard");
+    }
+  }, [isLoading, user, isVerified, isOAuthUser]);
+
+  if (isLoading || (user && (isVerified || isOAuthUser))) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">Entering dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const faqs = [
     {
