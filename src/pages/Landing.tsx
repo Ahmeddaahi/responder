@@ -56,6 +56,31 @@ const Landing = () => {
     }
   }, [isLoading, user, isVerified, isOAuthUser]);
 
+  // Add FAQ structured data
+  useEffect(() => {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    };
+
+    let scriptTag = document.getElementById('faq-structured-data');
+    if (!scriptTag) {
+      scriptTag = document.createElement('script');
+      scriptTag.id = 'faq-structured-data';
+      scriptTag.type = 'application/ld+json';
+      document.head.appendChild(scriptTag);
+    }
+    scriptTag.textContent = JSON.stringify(faqSchema);
+  }, []);
+
   if (isLoading || (user && (isVerified || isOAuthUser))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-background">
@@ -258,30 +283,6 @@ const Landing = () => {
     }
   ];
 
-  // Add FAQ structured data
-  useEffect(() => {
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": faqs.map(faq => ({
-        "@type": "Question",
-        "name": faq.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": faq.answer
-        }
-      }))
-    };
-
-    let scriptTag = document.getElementById('faq-structured-data');
-    if (!scriptTag) {
-      scriptTag = document.createElement('script');
-      scriptTag.id = 'faq-structured-data';
-      scriptTag.type = 'application/ld+json';
-      document.head.appendChild(scriptTag);
-    }
-    scriptTag.textContent = JSON.stringify(faqSchema);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-background">
