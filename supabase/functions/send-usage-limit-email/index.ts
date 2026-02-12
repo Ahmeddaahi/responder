@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface UsageLimitPayload {
     userId: string;
-    limitType: 'messages' | 'knowledge' | 'products';
+    limitType: 'messages' | 'knowledge' | 'products' | 'expired';
 }
 
 serve(async (req) => {
@@ -53,9 +53,18 @@ serve(async (req) => {
             const now = new Date();
             const diffDays = (now.getTime() - lastSent.getTime()) / (1000 * 3600 * 24);
 
-            if (diffDays < 25) {
+            if (diffDays < 25 && limitType !== 'expired') {
                 console.log('⏭️ Usage limit email already sent recently, skipping.');
                 return new Response(JSON.stringify({ message: 'Email already sent recently' }), {
+                    status: 200,
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+            }
+            
+            // For expired type, only send once every 7 days to avoid too many emails while they are still trying to use it
+            if (limitType === 'expired' && diffDays < 7) {
+                console.log('⏭️ Expiry notification email already sent within the last week, skipping.');
+                return new Response(JSON.stringify({ message: 'Expiry email sent recently' }), {
                     status: 200,
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
@@ -64,26 +73,37 @@ serve(async (req) => {
 
         // 3. Prepare Email Content
         const limitLabel = limitType === 'messages' ? 'Monthly AI Messages' :
-            limitType === 'products' ? 'Product Items' : 'Knowledge Base Items';
+            limitType === 'products' ? 'Product Items' : 
+            limitType === 'knowledge' ? 'Knowledge Base Items' : 'Subscription';
 
         const currentUsage = limitType === 'messages' ? subscription?.messages_used :
             limitType === 'products' ? subscription?.products_limit : subscription?.knowledge_base_limit;
 
+        const isExpired = limitType === 'expired';
+        const title = isExpired ? 'Subscription Expired 🛑' : 'Usage Limit Reached 🚀';
+        const mainMessage = isExpired 
+            ? `Your subscription expired on <strong>${subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString() : 'recently'}</strong>.`
+            : `We wanted to let you know that you have reached your <strong>${limitLabel}</strong> limit on your current ${subscription?.plan || 'free'} plan.`;
+        
+        const upgradeCallToAction = isExpired ? 'Renew Your Plan' : 'Upgrade My Plan';
+        const subject = isExpired ? '[Action Required] Your AI Assistant subscription has expired' : `[Action Required] You've reached your ${limitLabel} limit`;
+
         const emailHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-        <h2 style="color: #1a202c; margin-bottom: 24px;">Usage Limit Reached 🚀</h2>
+        <h2 style="color: #1a202c; margin-bottom: 24px;">${title}</h2>
         <p style="color: #4a5568; line-height: 1.6;">Hello,</p>
-        <p style="color: #4a5568; line-height: 1.6;">We wanted to let you know that you have reached your <strong>${limitLabel}</strong> limit on your current ${subscription?.plan || 'free'} plan.</p>
+        <p style="color: #4a5568; line-height: 1.6;">${mainMessage}</p>
         
         <div style="background-color: #f7fafc; padding: 16px; border-radius: 8px; margin: 24px 0;">
           <p style="margin: 0; color: #718096; font-size: 14px;">Current Plan: <span style="color: #2d3748; font-weight: bold; text-transform: capitalize;">${subscription?.plan || 'Free'}</span></p>
-          <p style="margin: 8px 0 0 0; color: #718096; font-size: 14px;">Limit Reached: <span style="color: #e53e3e; font-weight: bold;">${currentUsage} / ${currentUsage}</span></p>
+          ${!isExpired ? `<p style="margin: 8px 0 0 0; color: #718096; font-size: 14px;">Limit Reached: <span style="color: #e53e3e; font-weight: bold;">${currentUsage} / ${currentUsage}</span></p>` : ''}
+          ${isExpired ? `<p style="margin: 8px 0 0 0; color: #718096; font-size: 14px;">Expiry Date: <span style="color: #e53e3e; font-weight: bold;">${subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString() : 'N/A'}</span></p>` : ''}
         </div>
 
-        <p style="color: #4a5568; line-height: 1.6;">To continue using the AI assistant without interruption, please consider upgrading to a higher plan.</p>
+        <p style="color: #4a5568; line-height: 1.6;">To continue using the AI assistant without interruption, please consider ${isExpired ? 'renewing' : 'upgrading'} your plan.</p>
         
         <div style="margin-top: 32px; text-align: center;">
-          <a href="${siteUrl}/pricing" style="background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Upgrade My Plan</a>
+          <a href="${siteUrl}/pricing" style="background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">${upgradeCallToAction}</a>
         </div>
         
         <hr style="margin: 40px 0 24px 0; border: 0; border-top: 1px solid #edf2f7;" />
@@ -101,7 +121,7 @@ serve(async (req) => {
             body: JSON.stringify({
                 from: `${senderName} <${senderEmail}>`,
                 to: [userEmail],
-                subject: `[Action Required] You've reached your ${limitLabel} limit`,
+                subject: subject,
                 html: emailHtml,
             }),
         });

@@ -559,9 +559,14 @@ serve(async (req) => {
                         continue;
                     }
 
-                    // Check for subscription expiry
                     if (subData.expires_at && new Date(subData.expires_at) < new Date()) {
                         console.log(`⚠️ User ${userId} subscription expired on: ${subData.expires_at}`);
+
+                        // Trigger expiry email notification (fire and forget)
+                        supabase.functions.invoke('send-usage-limit-email', {
+                            body: { userId: userId, limitType: 'expired' }
+                        }).catch(err => console.error('Error invoking expiry email:', err));
+
                         await sendWhatsAppMessage(
                             phoneNumberId,
                             accessToken,

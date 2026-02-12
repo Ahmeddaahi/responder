@@ -159,7 +159,7 @@ serve(async (req) => {
         // Check message limit
         const { data: subData, error: subError } = await supabase
             .from('subscriptions')
-            .select('messages_used, message_limit, knowledge_base_limit, products_limit, max_chars_per_item')
+            .select('messages_used, message_limit, knowledge_base_limit, products_limit, max_chars_per_item, expires_at')
             .eq('user_id', userId)
             .single();
 
@@ -171,6 +171,29 @@ serve(async (req) => {
                 body: JSON.stringify({
                     chat_id: chatId,
                     text: '❌ Sorry, I encountered an error. Please try again later.'
+                })
+            });
+            return new Response(JSON.stringify({ status: 'ok' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+        }
+
+        // Check for subscription expiry
+        if (subData.expires_at && new Date(subData.expires_at) < new Date()) {
+            console.log(`⚠️ User ${userId} subscription expired on: ${subData.expires_at}`);
+
+            // Trigger expiry email notification (fire and forget)
+            supabase.functions.invoke('send-usage-limit-email', {
+                body: { userId: userId, limitType: 'expired' }
+            }).catch(err => console.error('Error invoking expiry email:', err));
+
+            const expiryMessage = `⚠️ Your subscription expired on ${new Date(subData.expires_at).toLocaleDateString()}. Please renew your plan to continue using the AI assistant.`;
+            await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: expiryMessage
                 })
             });
             return new Response(JSON.stringify({ status: 'ok' }), {
