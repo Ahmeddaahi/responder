@@ -4,7 +4,7 @@
 
 ### OpenRouter API Key
 ```
-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
+sk-or-v1-your-new-key-here
 ```
 
 ### Model ID
@@ -21,7 +21,7 @@ google/gemini-2.5-flash-lite
 3. Click **Add Secret** (or edit if it exists)
 4. Set:
    - **Name**: `OPENROUTER_API_KEY`
-   - **Value**: `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`
+   - **Value**: `(your new OpenRouter API key)`
 5. Click **Save**
 6. Wait 1-2 minutes for functions to restart
 
@@ -93,6 +93,6 @@ If the bot is not responding:
 ---
 
 **Status**: ✅ Configuration ready
-**API Key**: `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`
+**API Key**: `(Set in Supabase Secrets)`
 **Model**: `google/gemini-2.5-flash-lite`
 
