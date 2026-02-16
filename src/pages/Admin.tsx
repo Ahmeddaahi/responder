@@ -24,6 +24,7 @@ interface UserData {
   bookings_used: number;
   bookings_limit: number;
   is_active: boolean;
+  created_at: string;
 }
 
 const Admin = () => {
@@ -125,7 +126,7 @@ const Admin = () => {
           bookings_used,
           bookings_limit,
           is_active,
-          profiles (email)
+          profiles (email, created_at)
         `);
 
       if (subsError) throw subsError;
@@ -140,6 +141,7 @@ const Admin = () => {
         bookings_used: sub.bookings_used || 0,
         bookings_limit: sub.bookings_limit || 0,
         is_active: sub.is_active,
+        created_at: sub.profiles?.created_at || new Date().toISOString(),
       }));
 
       setUsers(usersData);
@@ -1203,6 +1205,7 @@ const Admin = () => {
                   <TableHead>User</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Platform</TableHead>
+                  <TableHead>Joined</TableHead>
                   <TableHead>Usage (Msgs / Bookings)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -1224,6 +1227,12 @@ const Admin = () => {
                     </TableCell>
                     <TableCell>
                       <span className="capitalize text-xs text-muted-foreground">{userData.platform}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium">{new Date(userData.created_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-muted-foreground">{new Date(userData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-3">
@@ -1300,6 +1309,9 @@ const Admin = () => {
                       <span className={`text-[10px] font-medium ${userData.is_active ? 'text-emerald-500' : 'text-muted-foreground'
                         }`}>
                         • {userData.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        • Joined {new Date(userData.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
