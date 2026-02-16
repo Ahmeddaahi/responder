@@ -20,7 +20,7 @@ interface PaymentModalProps {
     billingCycle?: 'monthly' | 'annually';
 }
 
-type PaymentMethod = 'ebirr' | 'zaad' | 'edahab' | 'crypto' | 'premierbank';
+type PaymentMethod = 'ebirr' | 'zaad' | 'edahab' | 'crypto';
 
 const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'monthly' }: PaymentModalProps) => {
     const [step, setStep] = useState<1 | 2>(1);
@@ -32,7 +32,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
     const [creatingCryptoOrder, setCreatingCryptoOrder] = useState(false);
     const [paymentName, setPaymentName] = useState("");
     const [paymentPhone, setPaymentPhone] = useState("");
-    const [creatingPremierBankOrder, setCreatingPremierBankOrder] = useState(false);
+
     const [showConfirmation, setShowConfirmation] = useState(false);
 
     // Promo Code State
@@ -113,11 +113,9 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
     const handleMethodSelect = async (method: PaymentMethod) => {
         setPaymentMethod(method);
 
-        // If crypto or premier bank is selected, immediately create order and redirect
+        // If crypto is selected, immediately create order and redirect
         if (method === 'crypto') {
             await handleCryptoPayment();
-        } else if (method === 'premierbank') {
-            await handlePremierBankPayment();
         }
     };
 
@@ -158,25 +156,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
         }
     };
 
-    const handlePremierBankPayment = async () => {
-        const plan = planName.toLowerCase();
-        let paymentLink = "";
 
-        // Use the link provided by the user, falling back to env variable if needed
-        paymentLink = "https://www.premierbank.so/paymern";
-
-        if (paymentLink) {
-            window.location.href = paymentLink;
-        } else {
-            console.error(`Premier Bank link not configured`);
-            toast({
-                title: "Configuration Error",
-                description: "Payment link not configured. Please contact support.",
-                variant: "destructive",
-            });
-            setPaymentMethod(null);
-        }
-    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -476,29 +456,14 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
                 alt: 'eDahab',
                 disabled: false
             },
-            {
-                id: 'premierbank' as PaymentMethod,
-                name: 'Card (Premier Bank)',
-                subtitle: 'Pay with your card',
-                logo: null,
-                alt: 'Card',
-                disabled: creatingPremierBankOrder || creatingCryptoOrder,
-                icon: (
-                    <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                        <path d="M2 10h20" stroke="currentColor" strokeWidth="2" />
-                        <circle cx="7" cy="15" r="1" fill="currentColor" />
-                        <circle cx="10" cy="15" r="1" fill="currentColor" />
-                    </svg>
-                )
-            },
+
             {
                 id: 'crypto' as PaymentMethod,
                 name: 'Crypto (USDT)',
                 subtitle: 'Pay with cryptocurrency',
                 logo: null,
                 alt: 'Crypto',
-                disabled: creatingCryptoOrder || creatingPremierBankOrder,
+                disabled: creatingCryptoOrder,
                 icon: (
                     <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="text-primary" />
@@ -543,8 +508,8 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
                                     ? 'text-yellow-400'
                                     : 'text-yellow-300/90'
                                     }`}>
-                                    {method.disabled && (method.id === 'crypto' || method.id === 'premierbank')
-                                        ? (method.id === 'crypto' && creatingCryptoOrder ? 'Loading...' : method.id === 'premierbank' && creatingPremierBankOrder ? 'Loading...' : method.name)
+                                    {method.disabled && method.id === 'crypto'
+                                        ? (creatingCryptoOrder ? 'Loading...' : method.name)
                                         : method.name
                                     }
                                 </span>
@@ -620,8 +585,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
             ebirr: { number: "0995817222", name: "Ahmed Bashir Ahmed" },
             zaad: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
             edahab: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
-            crypto: { number: "", name: "" },
-            premierbank: { number: "", name: "" }
+            crypto: { number: "", name: "" }
         };
 
         const currentDetails = paymentMethod ? paymentDetails[paymentMethod] : { number: "0995716810", name: "" };
