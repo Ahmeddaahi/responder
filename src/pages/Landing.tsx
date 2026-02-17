@@ -53,7 +53,11 @@ const faqs = [
   },
   {
     question: "Which platforms does Resbonder support?",
-    answer: "Resbonder supports WhatsApp Business API. Our platform provides a seamless automated experience for your customers on WhatsApp."
+    answer: "Resbonder supports both WhatsApp Business API and Web Chat. You can automate customer interactions on WhatsApp and also embed our AI assistant directly on your website using our chat widget."
+  },
+  {
+    question: "Can I embed the AI on my website?",
+    answer: "Yes! Resbonder provides a simple 'Web Chat Widget' that you can embed on any website using a small piece of code. This allows your website visitors to interact with your AI assistant, browse products, and make bookings directly from your site."
   },
   {
     question: "How much does Resbonder cost?",
@@ -88,13 +92,18 @@ const faqs = [
 const features = [
   {
     icon: Bot,
-    title: "AI-Powered Chat",
-    description: "Advanced AI agent that understands your business and responds intelligently using your data"
+    title: "AI Business Agent",
+    description: "Advanced AI agent that understands your business and responds intelligently across WhatsApp and Web"
+  },
+  {
+    icon: MessageSquare,
+    title: "Web Chat Widget",
+    description: "Embed our powerful AI assistant directly on your website with a single line of code"
   },
   {
     icon: Zap,
     title: "Automated Bookings",
-    description: "Let AI handle your reservation and booking flows automatically on WhatsApp"
+    description: "Let AI handle your reservation and booking flows automatically on any platform"
   },
   {
     icon: MessageSquare,
@@ -152,7 +161,7 @@ const Landing = () => {
       }))
     };
 
-    let scriptTag = document.getElementById('faq-structured-data');
+    let scriptTag = document.getElementById('faq-structured-data') as HTMLScriptElement;
     if (!scriptTag) {
       scriptTag = document.createElement('script');
       scriptTag.id = 'faq-structured-data';
@@ -227,6 +236,7 @@ const Landing = () => {
         "Unlimited Custom Fields",
         "Manual replies (Human takeover)",
         "Priority Email support",
+        "Web Chat Widget & Embedding",
         "Detailed dashboard metrics",
         "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
@@ -254,6 +264,7 @@ const Landing = () => {
         "Unlimited Custom Fields",
         "Human takeover + Override",
         "Priority WhatsApp support",
+        "Web Chat Widget & Embedding",
         "Multiple business setups",
         "Spam, Abuse & Unrelated massges (Not Counted)"
       ],
@@ -300,7 +311,7 @@ const Landing = () => {
                   alt="Resbonder Logo"
                   className="relative w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 transition-transform duration-300 group-hover:scale-110"
                   loading="eager"
-                  fetchpriority="high"
+                  fetchPriority="high"
                   width="56"
                   height="56"
                   style={{ aspectRatio: '1 / 1' }}
@@ -399,7 +410,7 @@ const Landing = () => {
                   textAlign="center"
                 />
                 <SplitText
-                  text="On WhatsApp"
+                  text="On WhatsApp & Web"
                   className="block bg-gradient-primary bg-clip-text text-transparent mt-2"
                   tag="span"
                   delay={150}
@@ -414,7 +425,7 @@ const Landing = () => {
                 />
               </div>
               <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
-                The only WhatsApp AI with <span className="text-primary font-semibold">native multi-language support</span>. Create an intelligent AI chatbot that handles customer questions and automated bookings 24/7 in Somali, English.
+                The only AI business agent with <span className="text-primary font-semibold">native multi-language support</span>. Automate customer questions and bookings 24/7 on WhatsApp and your website.
               </p>
               <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 sm:mb-10 max-w-2xl mx-auto">
                 Built for any business • Choose your AI language • Cultural context awareness
@@ -445,29 +456,74 @@ const Landing = () => {
           <DecorativePlatformIcons />
         </div>
 
-        {/* Features Section */}
-        <section id="features" className="py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden" aria-label="Features">
+        {/* Web Chat Showcase Section */}
+        <section className="py-16 sm:py-20 md:py-24 bg-muted/30 overflow-hidden" aria-label="Web Chat Widget">
           <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-12 sm:mb-16 md:mb-20">
-              <SlideUp>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground">Powerful AI Chatbot Features</h2>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Everything you need to automate customer support with AI-powered WhatsApp bots
-                </p>
-              </SlideUp>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
-              {features.map((feature, index) => (
-                <SlideUp key={index} delay={0.1 * index}>
-                  <article className="p-6 sm:p-8 bg-card border-border/50 hover:shadow-lg hover:border-primary/30 transition-all duration-300 h-full group rounded-lg border">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <feature.icon className="w-6 h-6 text-primary" aria-hidden="true" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+              <SlideInLeft>
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold text-primary">New: Web Chat Widget</span>
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                    Add AI Chat to Your Website in Seconds
+                  </h2>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    Don't limit your business to WhatsApp. Embed our intelligent AI assistant directly on your website. No coding required—just copy and paste a single line of code.
+                  </p>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-foreground/90 font-medium">Instant Integration</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-foreground/90 font-medium">Fully Responsive Design</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-foreground/90 font-medium">Shared Business Knowledge</span>
+                    </li>
+                  </ul>
+                  <div className="pt-4">
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/auth?mode=signup")}
+                      className="rounded-full px-8 bg-primary hover:bg-primary/90 shadow-md transition-all"
+                    >
+                      Start Embedding
+                    </Button>
+                  </div>
+                </div>
+              </SlideInLeft>
+
+              <SlideInRight>
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                  <Card className="relative p-2 bg-card border-border/50 overflow-hidden rounded-2xl shadow-2xl">
+                    <div className="bg-muted/50 rounded-lg p-4 font-mono text-sm overflow-x-auto border border-border/50">
+                      <div className="flex gap-2 mb-4">
+                        <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                      </div>
+                      <p className="text-primary">&lt;!-- Resbonder AI Chat Widget --&gt;</p>
+                      <p className="text-foreground">&lt;<span className="text-accent">iframe</span></p>
+                      <p className="pl-4 text-foreground">src=<span className="text-emerald-500">"https://resbonder.online/chat/your-id"</span></p>
+                      <p className="pl-4 text-foreground">width=<span className="text-emerald-500">"100%"</span> height=<span className="text-emerald-500">"600"</span></p>
+                      <p className="pl-4 text-foreground">frameborder=<span className="text-emerald-500">"0"</span></p>
+                      <p className="text-foreground">&gt;&lt;/<span className="text-accent">iframe</span>&gt;</p>
                     </div>
-                    <h3 className="text-xl font-semibold mb-3 text-foreground">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-                  </article>
-                </SlideUp>
-              ))}
+                  </Card>
+                </div>
+              </SlideInRight>
             </div>
           </div>
         </section>

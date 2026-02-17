@@ -111,9 +111,9 @@ export const updateSEO = (config: SEOConfig): void => {
  */
 export const SEO_CONFIGS: Record<string, SEOConfig> = {
   "/": {
-    title: "Resbonder - Automate Customer Support on WhatsApp",
-    description: "Create an AI-powered chat agent that answers customer questions 24/7 on WhatsApp. Upload your business data and automate customer support instantly.",
-    keywords: "AI chatbot, WhatsApp bot, customer support automation, AI agent, business chat",
+    title: "Resbonder | AI WhatsApp Bot & Web Chat Widget for Automated Booking",
+    description: "Automate customer support and bookings on WhatsApp and your website. Create an AI-powered chat agent that answers inquiries 24/7 with multi-language support.",
+    keywords: "AI chatbot, WhatsApp bot, Web Chat Widget, Chat Embedding, customer support automation, AI agent, business chat, automated booking",
     canonicalUrl: `${BASE_URL}/`,
   },
   "/pricing": {
@@ -158,8 +158,8 @@ export const applySEOForRoute = (pathname: string): void => {
   } else {
     // Default SEO for unknown routes
     updateSEO({
-      title: "Resbonder - Automate Customer Support on WhatsApp",
-      description: "Create an AI-powered chat agent that answers customer questions 24/7 on WhatsApp.",
+      title: "Resbonder | AI WhatsApp & Web Chatbot for Automated Booking",
+      description: "Automate customer support and bookings on WhatsApp and your website with an intelligent AI chatbot.",
       canonicalUrl: `${BASE_URL}${pathname}`,
     });
   }
