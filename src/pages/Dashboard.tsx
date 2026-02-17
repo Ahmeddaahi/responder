@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Settings,
   Calendar,
-  Zap
+  Zap,
+  TrendingUp
 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import type { User } from "@supabase/supabase-js";
@@ -96,6 +97,7 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [weeklyBookingsCount, setWeeklyBookingsCount] = useState(0);
+  const [conversionRate, setConversionRate] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -146,7 +148,7 @@ const Dashboard = () => {
         setTotalMessages(msgCount || 0);
       }
 
-      // Get weekly bookings count
+      // Get weekly bookings count (all platforms, last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -158,6 +160,31 @@ const Dashboard = () => {
 
       if (!bError) {
         setWeeklyBookingsCount(bCount || 0);
+      }
+
+      // Calculate Conversion Rate: (Confirmed Bookings / Unique Customers) * 100
+      // 1. Get unique customers count from message logs
+      const { data: customerData, error: customerError } = await supabase
+        .from('message_logs')
+        .select('customer_id')
+        .eq('user_id', user.id);
+
+      // 2. Get total confirmed bookings
+      const { count: confirmedCount, error: confirmedError } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'confirmed');
+
+      if (!customerError && !confirmedError && customerData) {
+        const uniqueCustomers = new Set(customerData.map(log => log.customer_id)).size;
+
+        if (uniqueCustomers > 0) {
+          const rate = ((confirmedCount || 0) / uniqueCustomers) * 100;
+          setConversionRate(Math.min(100, Math.round(rate)));
+        } else {
+          setConversionRate(0);
+        }
       }
     } catch (error) {
       console.error('Error loading metrics:', error);
@@ -566,23 +593,36 @@ const Dashboard = () => {
             <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-orange-500/5 to-yellow-500/5 border-orange-500/10 hover:shadow-md transition-all">
               <div className="flex justify-between items-start mb-4">
                 <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <TrendingUp className="w-5 h-5 text-orange-600" />
+                </div>
+                <Badge variant="outline" className="text-[10px] font-normal border-orange-200">Conversion Rate</Badge>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">{conversionRate}%</h3>
+                <p className="text-xs text-muted-foreground mt-1">Customers that booked</p>
+              </div>
+            </Card>
+
+            <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-emerald-500/5 to-green-500/5 border-emerald-500/10 hover:shadow-md transition-all sm:col-span-2 lg:col-span-3">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
                   <Badge variant="outline" className="p-0 border-none">
-                    <Check className="w-5 h-5 text-orange-600" />
+                    <Check className="w-5 h-5 text-emerald-600" />
                   </Badge>
                 </div>
-                <Badge variant="outline" className={`text-[10px] font-normal border-orange-200 capitalize`}>
+                <Badge variant="outline" className={`text-[10px] font-normal border-emerald-200 capitalize`}>
                   {subscription?.plan === 'starter' ? 'Pro' : subscription?.plan === 'enterprise' ? 'Business' : subscription?.plan === 'free' ? 'Free Trial' : subscription?.plan}
                 </Badge>
               </div>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] uppercase font-bold text-muted-foreground">Messages</span>
                     <span className="text-[10px] font-medium">{subscription?.messages_used} / {subscription?.message_limit}</span>
                   </div>
-                  <div className="w-full bg-orange-500/10 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-emerald-500/10 h-1.5 rounded-full overflow-hidden">
                     <div
-                      className="bg-orange-500 h-full transition-all duration-500"
+                      className="bg-emerald-500 h-full transition-all duration-500"
                       style={{ width: `${Math.min(100, ((subscription?.messages_used || 0) / (subscription?.message_limit || 1)) * 100)}%` }}
                     />
                   </div>
@@ -593,26 +633,26 @@ const Dashboard = () => {
                     <span className="text-[10px] uppercase font-bold text-muted-foreground">Bookings</span>
                     <span className="text-[10px] font-medium">{subscription?.bookings_used} / {subscription?.bookings_limit}</span>
                   </div>
-                  <div className="w-full bg-orange-500/10 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-emerald-500/10 h-1.5 rounded-full overflow-hidden">
                     <div
-                      className="bg-amber-500 h-full transition-all duration-500"
+                      className="bg-green-500 h-full transition-all duration-500"
                       style={{ width: `${Math.min(100, ((subscription?.bookings_used || 0) / (subscription?.bookings_limit || 1)) * 100)}%` }}
                     />
                   </div>
                 </div>
-
-                {subscription?.plan !== 'enterprise' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-1 w-full h-8 text-[10px] bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 font-bold border border-orange-500/20"
-                    onClick={() => navigate("/pricing")}
-                  >
-                    <Zap className="w-3 h-3 mr-1" />
-                    Upgrade Now
-                  </Button>
-                )}
               </div>
+
+              {subscription?.plan !== 'enterprise' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-4 w-full h-8 text-[10px] bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 font-bold border border-emerald-500/20"
+                  onClick={() => navigate("/pricing")}
+                >
+                  <Zap className="w-3 h-3 mr-1" />
+                  Upgrade Now
+                </Button>
+              )}
             </Card>
           </div>
 
@@ -770,6 +810,13 @@ const Dashboard = () => {
                     ) : (
                       <Button variant="ghost" size="sm" onClick={() => navigate("/settings")} className="h-6 text-[10px] p-0 text-primary">Connect</Button>
                     )}
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                      <span className="text-sm font-medium">Web Chat</span>
+                    </div>
+                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Online</Badge>
                   </div>
                 </div>
               </Card>

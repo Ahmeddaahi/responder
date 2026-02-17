@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, BookOpen, Eye, EyeOff } from "lucide-react";
+import { MessageSquare, BookOpen, Eye, EyeOff, Layout, Copy, Check as CheckIcon } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import type { User } from "@supabase/supabase-js";
 import ManagedSetupModal from "@/components/ManagedSetupModal";
@@ -25,6 +25,7 @@ const Settings = () => {
   const [showAppId, setShowAppId] = useState(false);
   const [isManagedSetupOpen, setIsManagedSetupOpen] = useState(false);
   const [hasPendingSetup, setHasPendingSetup] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -208,6 +209,25 @@ const Settings = () => {
     }
   };
 
+  const widgetUrl = `${window.location.origin}/chat/${user?.id}`;
+  const embedCode = `<iframe 
+  src="${widgetUrl}" 
+  width="400" 
+  height="600" 
+  style="border:none; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: fixed; bottom: 20px; right: 20px; z-index: 9999;"
+  title="AI Business Assistant"
+></iframe>`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(embedCode);
+    setCopied(true);
+    toast({
+      title: "Copied!",
+      description: "Embed code copied to clipboard",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   // Check if user has saved at least one platform configuration
   const handleContinue = () => {
     if (settingsSaved) {
@@ -352,6 +372,60 @@ const Settings = () => {
                 >
                   Save WhatsApp Settings
                 </Button>
+
+                {/* Web Chat Widget Configuration */}
+                <Card className="p-4 sm:p-5 md:p-6 bg-gradient-card border-border">
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                    <Layout className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    Web Chat Widget
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Embed your AI Business Assistant directly on your website to capture leads and handle bookings 24/7.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="bg-muted p-4 rounded-lg relative group">
+                      <pre className="text-[10px] sm:text-xs overflow-x-auto whitespace-pre-wrap font-mono text-foreground/80 leading-relaxed">
+                        {embedCode}
+                      </pre>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={copyToClipboard}
+                      >
+                        {copied ? <CheckIcon className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                      <Button
+                        onClick={copyToClipboard}
+                        className="w-full sm:w-auto bg-gradient-primary hover:opacity-90"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Embed Code
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => window.open(widgetUrl, '_blank')}
+                        className="w-full sm:w-auto border-primary/50 text-primary hover:bg-primary/5"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview Widget
+                      </Button>
+                    </div>
+
+                    <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/10">
+                      <h4 className="text-xs font-bold mb-2 uppercase tracking-tighter text-primary">How to install:</h4>
+                      <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
+                        <li>Copy the code above.</li>
+                        <li>Paste it into your website's HTML before the closing <code className="bg-muted px-1 rounded">&lt;/body&gt;</code> tag.</li>
+                        <li>The chat bubble will appear automatically for your visitors!</li>
+                      </ol>
+                    </div>
+                  </div>
+                </Card>
 
                 {/* Managed Setup Section */}
                 <div className="mt-8 pt-8 border-t border-border">

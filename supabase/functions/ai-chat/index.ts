@@ -188,7 +188,7 @@ serve(async (req) => {
         // Fetch booking configuration to get the forced language setting and business details
         const { data: bookingConfig } = await supabase
             .from('booking_configurations')
-            .select('language, business_name, business_type')
+            .select('*')
             .eq('user_id', userId)
             .eq('is_active', true)
             .maybeSingle();
@@ -213,7 +213,6 @@ serve(async (req) => {
 
         // Build context from knowledge base with focus on products and business details
         // Optimized to reduce token usage while maintaining context
-        // Add language requirement at the very beginning
         const languageHeader = forcedLanguage === 'somali'
             ? '=== CRITICAL: YOU ARE A SOMALI LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to Somali (Soomaali). You MUST respond ONLY in Somali. DO NOT use English. DO NOT include English translations. DO NOT mix languages. Use polite, clear, natural, and business-appropriate Somali. Use "Walaal" to address customers politely. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% Somali. Every single word must be in Somali.\n=== END LANGUAGE REQUIREMENT ===\n\n'
             : '=== CRITICAL: YOU ARE AN ENGLISH LANGUAGE ASSISTANT ===\nYour response language has been STRICTLY configured to English. You MUST respond ONLY in English. DO NOT include Somali translations. DO NOT mix languages. Use professional, friendly business English. Regardless of the customer\'s input language, emojis, or slang, your output MUST be 100% English. Every single word must be in English.\n=== END LANGUAGE REQUIREMENT ===\n\n';
@@ -240,7 +239,7 @@ serve(async (req) => {
 
         let context = languageHeader + `You are a helpful business assistant chatbot.
 
-RELEVANT DATES:
+ RELEVANT DATES:
 - Today: ${todayDate}
 - Tomorrow: ${tomorrowDate}
 - Day After Tomorrow: ${dayAfterTomorrowDate}
@@ -263,6 +262,13 @@ Your primary job is to answer customer questions about:
 
 Answer questions based ONLY on the information provided below. Extract and present product and business information clearly when available.\n\n`;
 
+        const currency = bookingConfig?.currency || 'ETB';
+
+        // Add custom instructions if available
+        if (bookingConfig?.ai_instructions) {
+            context += `=== CUSTOM BUSINESS INSTRUCTIONS ===\n${bookingConfig.ai_instructions}\n\n`;
+        }
+
         // Add products section if products exist
         if (productsData && productsData.length > 0) {
             context += '=== PRODUCTS LIST ===\n';
@@ -270,7 +276,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
             productsData.forEach((product: any) => {
                 context += `Product: ${product.name}\n`;
                 if (product.price !== null) {
-                    context += `Price: ${product.price} ETB\n`;
+                    context += `Price: ${product.price} ${currency}\n`;
                 }
                 if (product.details) {
                     context += `Details: ${product.details}\n`;
@@ -359,35 +365,59 @@ Answer questions based ONLY on the information provided below. Extract and prese
             context += 'No business information available yet. Provide helpful, professional responses.';
         }
 
-        // Build service list instructions based on what's actually enabled
-        const serviceInstructions: string[] = [];
+        // Add specific business type configurations
         const businessType = bookingConfig?.business_type || 'custom';
-
-        if (bookingConfig && bookingConfig.is_active) {
-            if (businessType === 'hotel') {
-                serviceInstructions.push(forcedLanguage === 'somali' ? '🏨 Qabsashada qol iyo hubinta boosaska' : '🏨 Booking rooms and checking availability');
-                serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Hubinta taariikhaha la heli karo' : '📅 Checking available dates');
-            } else if (businessType === 'restaurant') {
-                serviceInstructions.push(forcedLanguage === 'somali' ? '🍽️ Qabsashada miis' : '🍽️ Booking a table');
-            } else if (businessType === 'hospital') {
-                serviceInstructions.push(forcedLanguage === 'somali' ? '👨‍⚕️ Qabsashada takhtar' : '👨‍⚕️ Booking a doctor appointment');
-            } else {
-                serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
+        if (bookingConfig) {
+            if (businessType === 'hotel' && bookingConfig.hotel_rooms_available) {
+                context += '=== AVAILABLE ROOMS ===\n';
+                bookingConfig.hotel_rooms_available.forEach((room: any) => {
+                    context += `- ${room.name}: ${room.price} ${currency} (${room.available ? 'Available' : 'Booked'})\n`;
+                });
+                context += '\n';
+            } else if (businessType === 'restaurant' && bookingConfig.restaurant_opening_hours) {
+                context += '=== OPENING HOURS ===\n';
+                context += JSON.stringify(bookingConfig.restaurant_opening_hours, null, 2) + '\n\n';
+            } else if (businessType === 'hospital' && bookingConfig.hospital_departments) {
+                context += '=== DEPARTMENTS ===\n';
+                bookingConfig.hospital_departments.forEach((dept: any) => {
+                    context += `- ${dept}\n`;
+                });
+                context += '\n';
             }
         }
-        if (productsData && productsData.length > 0 || knowledgeData && knowledgeData.length > 0) {
+
+        // Build service list instructions based on what's actually enabled
+        const serviceInstructions: string[] = [];
+
+        if (bookingConfig && bookingConfig.is_active) {
+            if (bookingConfig.show_booking_service) {
+                if (businessType === 'hotel') {
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '🏨 Qabsashada qol iyo hubinta boosaska' : '🏨 Booking rooms and checking availability');
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Hubinta taariikhaha la heli karo' : '📅 Checking available dates');
+                } else if (businessType === 'restaurant') {
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '🍽️ Qabsashada miis' : '🍽️ Booking a table');
+                } else if (businessType === 'hospital') {
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '👨‍⚕️ Qabsashada takhtar' : '👨‍⚕️ Booking a doctor appointment');
+                } else {
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Qabsashada ama ballanka qaadista' : '📅 Booking or scheduling an appointment');
+                }
+            }
+        }
+        if (bookingConfig?.show_qa_service && (productsData && productsData.length > 0 || knowledgeData && knowledgeData.length > 0)) {
             serviceInstructions.push(forcedLanguage === 'somali' ? '❓ Jawaab su\'aalaha ganacsiga' : '❓ Answering questions about our business');
         }
-        if (productsData && productsData.length > 0) {
+        if (bookingConfig?.show_products_service && productsData && productsData.length > 0) {
             serviceInstructions.push(forcedLanguage === 'somali' ? '💰 Qiimaha iyo helitaanka alaabta' : '💰 Providing pricing and availability details');
         }
-        if (bookingConfig && bookingConfig.is_active) {
+        if (bookingConfig?.show_update_booking_service && bookingConfig?.is_active) {
             serviceInstructions.push(forcedLanguage === 'somali' ? '🔁 Cusbooneysiinta ama joojinta ballanka' : '🔁 Updating or cancelling an existing booking');
         }
 
         // Format services for the prompt
         const formattedServices = serviceInstructions.map(s => `     ${s}`).join('\\n');
         const businessName = bookingConfig?.business_name || 'our business';
+
+        context += `\nCRITICAL IDENTITY RULE: The official name of the business you represent is "${businessName}". ALWAYS use this name in your greetings and responses. If you see any other business names in the knowledge base content (like "SmartTech Electronics" or anything else), IGNORE THEM as they are outdated. You are strictly the assistant for "${businessName}".\n\n`;
 
         context += '0. **GREETING RESPONSE (ABSOLUTE HIGHEST PRIORITY)**: When a customer sends a greeting like "ASC", "asc", "asalamu alaykum", "aslamu calaykum", "salaamu alaykum", "al salaamu alaykum", or similar Islamic greetings:\n';
         context += '   - Respond with "WCS" or "Wacalaykum alsalaam" (NEVER respond with "ASC")\n';
@@ -465,18 +495,52 @@ Answer questions based ONLY on the information provided below. Extract and prese
         }
 
         context += '7. Only provide information that exists in the knowledge base content above. If information is truly not available, then politely say so.\n';
-        context += `8. **BOOKING & APPOINTMENT PROCESS (MANDATORY)**: When a customer wants to book or schedule an appointment (e.g., hotel room, restaurant table, doctor visit):\n`;
-        context += `   - **STEP 1: COLLECT INFO**: Politely ask for any missing information one by one (don\'t overwhelm them):\n`;
-        context += `     - Full Name\n`;
-        context += `     - Date (ensure it follows "Date handling rules" above)\n`;
-        context += `     - Time\n`;
-        context += `     - Number of guests/people (Mandatory for Hotels and Restaurants)\n`;
-        context += `     - Service/Room type (if applicable)\n`;
-        context += `   - **IMPORTANT: UNDERSTAND BRIEF/NUMERICAL RESPONSES**: If you ask a question and the customer provides a short, direct answer, you MUST understand it. Examples:\n`;
+        context += `8. **BOOKING & APPOINTMENT PROCESS (ABSOLUTE ENFORCEMENT)**: When a customer wants to book or schedule an appointment:\n`;
+        context += `   - **STRICT MANDATORY CHECKLIST (In Somali)**:\n`;
+
+        const checklist: { en: string; so: string }[] = [];
+        if (bookingConfig?.require_customer_name) checklist.push({ en: 'Full Name', so: 'Magacaaga oo dhamaystiran' });
+        if (bookingConfig?.require_customer_phone) checklist.push({ en: 'Phone Number', so: 'Lambarkaaga taleefanka (Phone Number)' });
+        if (bookingConfig?.require_customer_email) checklist.push({ en: 'Email Address', so: 'Email-kaaga' });
+
+        if (businessType === 'hotel') {
+            if (bookingConfig?.require_check_in_date) checklist.push({ en: 'Check-in Date', so: 'Taariikhda soo degista (Check-in)' });
+            if (bookingConfig?.require_check_out_date) checklist.push({ en: 'Check-out Date', so: 'Taariikhda bixitaanka (Check-out)' });
+            if (bookingConfig?.require_number_of_guests) checklist.push({ en: 'Number of Guests', so: 'Inta qof ee joogaysa' });
+            if (bookingConfig?.require_room_type) checklist.push({ en: 'Room Type', so: 'Nooca qolka aad rabto' });
+        } else if (businessType === 'restaurant') {
+            if (bookingConfig?.require_reservation_date) checklist.push({ en: 'Reservation Date', so: 'Taariikhda qabsashada' });
+            if (bookingConfig?.require_reservation_time) checklist.push({ en: 'Reservation Time', so: 'Saacadda' });
+            if (bookingConfig?.require_number_of_people) checklist.push({ en: 'Number of People', so: 'Inta qof' });
+            if (bookingConfig?.require_table_preference) checklist.push({ en: 'Table Preference', so: 'Meesha aad dooranayso' });
+        } else if (businessType === 'hospital') {
+            if (bookingConfig?.require_appointment_date) checklist.push({ en: 'Appointment Date', so: 'Taariikhda ballanta' });
+            if (bookingConfig?.require_appointment_time) checklist.push({ en: 'Appointment Time', so: 'Saacadda ballanta' });
+            if (bookingConfig?.require_department) checklist.push({ en: 'Department', so: 'Waaxda (Department)' });
+            if (bookingConfig?.require_doctor_name) checklist.push({ en: 'Doctor Name', so: 'Magaca takhtarka' });
+        } else {
+            if (bookingConfig?.require_appointment_date) checklist.push({ en: 'Booking Date', so: 'Taariikhda' });
+            if (bookingConfig?.require_appointment_time) checklist.push({ en: 'Booking Time', so: 'Saacadda' });
+        }
+
+        if (bookingConfig?.custom_fields && bookingConfig.custom_fields.length > 0) {
+            bookingConfig.custom_fields.forEach((field: any) => {
+                checklist.push({ en: field.label || field.name, so: field.label || field.name });
+            });
+        }
+
+        checklist.forEach(item => {
+            context += `     [ ] ${item.en} (${item.so})\n`;
+        });
+
+        context += `\n   - **RULE 1: ONE QUESTION PER MESSAGE**: You ARE FORBIDDEN from asking for two pieces of information at once. Check the history and ask for the NEXT missing field from the checklist ONLY. If they provided multiple answers, process them all and ask for the next missing one.\n`;
+        context += `   - **RULE 2: NO EARLY SUMMARY**: You are STRICTLY FORBIDDEN from summarizing the booking until EVERY field in the checklist above has a confirmed value in the conversation history. Specifically, do NOT skip the Phone Number (Lambarka taleefanka).\n`;
+        context += `   - **RULE 3: VALIDATION STEP**: Before you send ANY summary, mentally verify: "Do I have the phone number? Do I have the check-out date?". If the answer is NO, you MUST ask for that information instead of summarizing.\n`;
+        context += `   - **IMPORTANT: UNDERSTAND BRIEF/NUMERICAL RESPONSES**: If you ask a question and the customer provides a short, direct answer, you MUST understand it.\n`;
         context += `     - If you ask "How many guests?" and they say "2" or "1", accept it as the guest count.\n`;
         context += `     - If you ask "What is your name?" and they say "Ahmed", accept it as the name.\n`;
         context += `     - If you ask "When do you want to book?" and they say "Berri" or "Tomorrow", accept it as the date.\n`;
-        context += `   - **STEP 2: PRESENT SUMMARY**: Once ALL information (Name, Date, Time, Guests, Service) is collected, you **MUST** present a clear summary to the customer.\n`;
+        context += `   - **STEP 2: PRESENT SUMMARY**: Once EVERY field from the mandatory checklist is collected, you **MUST** present a clear summary of ALL fields to the customer.\n`;
         if (forcedLanguage === 'somali') {
             context += `     - Somali Example: "Fadlan hubi macluumaadkaaga:\n\nMagaca: [Magaca]\nTaariikhda: [Taariikhda]\nWaqtiga: [Waqtiga]\nMartida: [Martida]\nAdeegga: [Adeegga]\n\nMa xaqiijinysaa ballantan/Ma saxbaa ballankan?"\n`;
         } else {
@@ -492,6 +556,23 @@ Answer questions based ONLY on the information provided below. Extract and prese
         context += `   - Use "Haye" (okay/sure), "Waa hagaag" (it's fine).\n`;
         context += `   - Use "Waan ka raalli ahay" (I agree/I apologize).\n`;
         context += `   - **CRITICAL**: Do NOT jump to Step 4 without a summary and explicit confirmation from the customer.`;
+        context += `\n\n=== ACTION LOGIC (HIDDEN FROM CUSTOMER) ===\n`;
+        context += `At the vary end of EVERY response, you MUST include a hidden JSON block containing the current extracted booking details. This block MUST be separated by the special marker <|BOOKING_JSON|>.
+        JSON Structure:
+        {
+          "customer_name": string | null,
+          "customer_phone": string | null,
+          "customer_email": string | null,
+          "check_in_date": string | null, (ISO YYYY-MM-DD or same as date field)
+          "check_out_date": string | null, (ISO YYYY-MM-DD)
+          "number_of_guests": number | null,
+          "room_type": string | null,
+          "status": "pending" | "confirmed",
+          "custom_data": object | null
+        }
+        - Set status to "confirmed" ONLY when the customer has explicitly confirmed the summary.
+        - Otherwise, set status to "pending".
+        - Example: Your response text... <|BOOKING_JSON|> {"customer_name": "Ahmed", "status": "pending", ...}`;
 
 
 
@@ -909,8 +990,24 @@ Answer questions based ONLY on the information provided below. Extract and prese
             responseLength: aiData.choices?.[0]?.message?.content?.length || 0
         });
 
-        const aiMessage = aiData.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-        console.log('💬 Generated AI message length:', aiMessage.length);
+        const aiMessageFull = aiData.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+        console.log('💬 Generated AI message length:', aiMessageFull.length);
+
+        let aiMessage = aiMessageFull;
+        let bookingDataJson: any = null;
+
+        // Process Action Logic (JSON block)
+        if (aiMessageFull.includes('<|BOOKING_JSON|>')) {
+            const parts = aiMessageFull.split('<|BOOKING_JSON|>');
+            aiMessage = parts[0].trim();
+            const jsonPart = parts[1].trim();
+            try {
+                bookingDataJson = JSON.parse(jsonPart);
+                console.log('✅ Parsed booking JSON:', bookingDataJson);
+            } catch (e) {
+                console.error('❌ Failed to parse booking JSON:', e);
+            }
+        }
 
         // Log the message exchange
         const { error: logError } = await supabase
@@ -925,6 +1022,96 @@ Answer questions based ONLY on the information provided below. Extract and prese
 
         if (logError) {
             console.error('Message log error:', logError);
+        }
+
+        // Booking Automation Logic
+        if (bookingDataJson && bookingConfig && customerId) {
+            try {
+                // 1. Check for existing booking
+                const { data: existingBooking } = await supabase
+                    .from('bookings')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('customer_id', customerId)
+                    .eq('platform', platform || 'web')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                const isNewlyConfirmed = bookingDataJson.status === 'confirmed' && (!existingBooking || existingBooking.status !== 'confirmed');
+
+                // 2. Check booking limits if newly confirmed
+                if (isNewlyConfirmed) {
+                    const { data: currentSub } = await supabase
+                        .from('subscriptions')
+                        .select('bookings_used, bookings_limit')
+                        .eq('user_id', userId)
+                        .single();
+
+                    if (currentSub && currentSub.bookings_used >= currentSub.bookings_limit) {
+                        console.log('⚠️ Booking limit reached, rolling back to pending');
+                        bookingDataJson.status = 'pending';
+                        aiMessage += forcedLanguage === 'somali'
+                            ? '\n\n⚠️ Iska raali nogo, nidaamkayagu hadda ma aqbali karo ballan-qaadyo cusub qorshahaaga awgiis.'
+                            : '\n\n⚠️ Sorry, our system cannot accept new bookings right now due to plan limits.';
+                    }
+                }
+
+                // 3. Prepare booking record
+                const bookingRecord = {
+                    user_id: userId,
+                    customer_id: customerId,
+                    platform: platform || 'web',
+                    booking_type: bookingConfig.business_type,
+                    business_name: bookingConfig.business_name,
+                    customer_name: bookingDataJson.customer_name,
+                    customer_phone: bookingDataJson.customer_phone || customerId,
+                    customer_email: bookingDataJson.customer_email,
+                    check_in_date: bookingDataJson.check_in_date,
+                    check_out_date: bookingDataJson.check_out_date,
+                    number_of_guests: bookingDataJson.number_of_guests,
+                    room_type: bookingDataJson.room_type,
+                    status: bookingDataJson.status,
+                    custom_data: bookingDataJson.custom_data,
+                    updated_at: new Date().toISOString()
+                };
+
+                let savedBookingId = existingBooking?.id;
+
+                if (existingBooking) {
+                    await supabase.from('bookings').update(bookingRecord).eq('id', existingBooking.id);
+                    console.log('✅ Updated existing booking');
+                } else {
+                    const { data: newBooking } = await supabase.from('bookings').insert(bookingRecord).select('id').single();
+                    savedBookingId = newBooking?.id;
+                    console.log('✅ Created new booking');
+                }
+
+                // 4. Post-confirmation actions
+                if (isNewlyConfirmed && bookingDataJson.status === 'confirmed') {
+                    // Increment booking count
+                    await supabase.rpc('increment_booking_count', { p_user_id: userId });
+
+                    // Decrement room count if hotel
+                    if (bookingConfig.business_type === 'hotel' && bookingDataJson.room_type) {
+                        const rooms = bookingConfig.hotel_rooms_available || [];
+                        const roomIndex = rooms.findIndex((r: any) => r.name.toLowerCase() === bookingDataJson.room_type.toLowerCase());
+                        if (roomIndex !== -1 && rooms[roomIndex].count > 0) {
+                            rooms[roomIndex].count -= 1;
+                            await supabase.from('booking_configurations').update({ hotel_rooms_available: rooms }).eq('id', bookingConfig.id);
+                        }
+                    }
+
+                    // Send confirmation email
+                    if (savedBookingId) {
+                        supabase.functions.invoke('send-booking-reminder-email', {
+                            body: { bookingId: savedBookingId, actionType: 'created' }
+                        }).catch(err => console.error('📧 Email error:', err));
+                    }
+                }
+            } catch (err) {
+                console.error('❌ Booking automation error:', err);
+            }
         }
 
         // Update message count
