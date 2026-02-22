@@ -20,6 +20,7 @@ const WebChat = () => {
     const [loading, setLoading] = useState(false);
     const [customerId, setCustomerId] = useState<string>("");
     const [businessName, setBusinessName] = useState<string>("AI Assistant");
+    const [widgetColor, setWidgetColor] = useState<string>("#25D366");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
@@ -45,12 +46,15 @@ const WebChat = () => {
         try {
             const { data, error } = await supabase
                 .from('booking_configurations')
-                .select('business_name')
+                .select('business_name, widget_color')
                 .eq('user_id', userId)
                 .maybeSingle();
 
             if (data?.business_name) {
                 setBusinessName(data.business_name);
+            }
+            if (data?.widget_color) {
+                setWidgetColor(data.widget_color);
             }
         } catch (error) {
             console.error("Error loading business name:", error);
@@ -156,9 +160,12 @@ const WebChat = () => {
     return (
         <div className="flex flex-col h-screen bg-background border border-border rounded-lg overflow-hidden shadow-xl max-w-md mx-auto">
             {/* Header */}
-            <div className="p-4 bg-primary text-primary-foreground flex items-center gap-3 shrink-0">
-                <div className="p-2 bg-primary-foreground/10 rounded-full">
-                    <Bot className="w-5 h-5" />
+            <div
+                className="p-4 flex items-center gap-3 shrink-0 text-white"
+                style={{ backgroundColor: widgetColor }}
+            >
+                <div className="p-2 bg-white/10 rounded-full">
+                    <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
                     <h2 className="font-bold text-sm">{businessName}</h2>
@@ -186,9 +193,10 @@ const WebChat = () => {
                     >
                         <div
                             className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user'
-                                ? 'bg-primary text-primary-foreground rounded-tr-none'
+                                ? 'text-white rounded-tr-none shadow-sm'
                                 : 'bg-card border border-border rounded-tl-none shadow-sm'
                                 }`}
+                            style={msg.role === 'user' ? { backgroundColor: widgetColor } : {}}
                         >
                             {msg.content}
                         </div>
@@ -197,7 +205,7 @@ const WebChat = () => {
                 {loading && (
                     <div className="flex justify-start">
                         <div className="bg-card border border-border p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                            <Loader2 className="w-4 h-4 animate-spin" style={{ color: widgetColor }} />
                             <span className="text-xs text-muted-foreground">AI is typing...</span>
                         </div>
                     </div>
@@ -226,9 +234,10 @@ const WebChat = () => {
                         type="submit"
                         size="icon"
                         disabled={loading || !message.trim()}
-                        className="shrink-0 rounded-full bg-primary hover:bg-primary/90"
+                        className="shrink-0 rounded-full hover:opacity-90 transition-opacity"
+                        style={{ backgroundColor: widgetColor }}
                     >
-                        <Send className="w-4 h-4" />
+                        <Send className="w-4 h-4 text-white" />
                     </Button>
                 </form>
                 <div className="mt-2 text-center">

@@ -209,7 +209,7 @@ const Settings = () => {
     }
   };
 
-  const widgetUrl = `${window.location.origin}/chat/${user?.id}`;
+  const widgetUrl = `https://resbonder.online/chat/${user?.id}`;
   const embedCode = `<iframe 
   src="${widgetUrl}" 
   width="400" 

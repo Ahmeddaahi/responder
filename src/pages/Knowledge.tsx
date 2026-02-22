@@ -70,6 +70,7 @@ interface BookingConfiguration {
   ai_instructions: string;
   language: "so" | "en";
   currency: string;
+  widget_color: string;
 }
 
 const DEFAULT_CONFIG: Omit<BookingConfiguration, "business_type"> = {
@@ -115,6 +116,8 @@ const DEFAULT_CONFIG: Omit<BookingConfiguration, "business_type"> = {
   ai_instructions: "",
   language: "so",
   currency: "ETB",
+  widget_color: "#25D366",
+  field_configs: [],
 };
 
 const DEFAULT_FIELDS_MAP: Record<string, BookingField[]> = {
@@ -296,6 +299,8 @@ const Knowledge = () => {
           },
           language: (d.language as "so" | "en") || "so",
           currency: d.currency || "ETB",
+          widget_color: d.widget_color || "#25D366",
+          ai_instructions: d.ai_instructions || "",
         });
         setKnowledgeSaved(true);
       } else {
@@ -409,6 +414,7 @@ const Knowledge = () => {
         custom_fields: customFields,
         language: config.language,
         currency: config.currency,
+        widget_color: config.widget_color,
 
         // Keep legacy flags in sync for backward compatibility
         require_customer_name: config.field_configs.find(f => f.id === 'customer_name')?.required ?? true,
@@ -649,6 +655,29 @@ const Knowledge = () => {
                           </Select>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                             Currency for room prices.
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="widget_color" className="text-sm">Web Chat Color</Label>
+                          <div className="flex gap-3 items-center">
+                            <Input
+                              id="widget_color"
+                              type="color"
+                              value={config.widget_color}
+                              onChange={(e) => setConfig({ ...config, widget_color: e.target.value })}
+                              className="w-12 h-10 p-1 cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={config.widget_color}
+                              onChange={(e) => setConfig({ ...config, widget_color: e.target.value })}
+                              className="h-10 text-sm font-mono"
+                              placeholder="#000000"
+                            />
+                          </div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                            Brand color for your web chat widget.
                           </p>
                         </div>
                       </div>
