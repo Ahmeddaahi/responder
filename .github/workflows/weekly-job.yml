@@ -9,10 +9,15 @@ on:
   # Allow manual trigger from the GitHub Actions tab for testing or ad-hoc runs
   workflow_dispatch:
 
-# Define the environment variables globally or per job
-# Added placeholders for secrets mentioned in the requirements
+# Define the environment variables globally
+# These map your GitHub Secrets to the variables used in scripts/weekly-task.js
 env:
-  GITHUB_SECRET_API_KEY: ${{ secrets.GITHUB_SECRET_API_KEY }}
+  SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.VITE_CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_ACCESS_KEY_ID: ${{ secrets.VITE_CLOUDFLARE_ACCESS_KEY_ID }}
+  CLOUDFLARE_SECRET_ACCESS_KEY: ${{ secrets.VITE_CLOUDFLARE_SECRET_ACCESS_KEY }}
+  CLOUDFLARE_BUCKET_NAME: ${{ secrets.VITE_CLOUDFLARE_BUCKET_NAME }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
