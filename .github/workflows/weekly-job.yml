@@ -1,0 +1,58 @@
+name: Weekly Task Runner
+
+# Define the triggers for the workflow
+on:
+  # Trigger every Sunday at 00:00 UTC
+  schedule:
+    - cron: '0 0 * * 0'
+  
+  # Allow manual trigger from the GitHub Actions tab for testing or ad-hoc runs
+  workflow_dispatch:
+
+# Define the environment variables globally or per job
+# Added placeholders for secrets mentioned in the requirements
+env:
+  GITHUB_SECRET_API_KEY: ${{ secrets.GITHUB_SECRET_API_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+jobs:
+  run-weekly-script:
+    # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    # Ensure the job fails if any step results in an error
+    continue-on-error: false
+
+    steps:
+      # Step 1: Checkout the repository so the runner can access the script
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history if needed (default is 1)
+          fetch-depth: 1
+
+      # Step 2: Set up Node.js v20 as requested
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          # Use caching to speed up future runs if package-lock.json is present
+          cache: 'npm'
+
+      # Step 3: Install project dependencies using npm install
+      # This ensures all required packages for scripts/weekly-task.js are available
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Execute the weekly task script
+      # The script handles its own logging and internal error management
+      - name: Run Weekly Task Script
+        run: node scripts/weekly-task.js
+
+      # Step 5: Final status reporting
+      # This step only runs if all previous steps were successful
+      - name: Report Success
+        if: success()
+        run: |
+          echo "### Job Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "Weekly task completed successfully at $(date -u)" >> $GITHUB_STEP_SUMMARY
