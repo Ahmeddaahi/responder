@@ -45,10 +45,13 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // For other assets, try cache then network
     event.respondWith(
         caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+            return response || fetch(event.request).catch((error) => {
+                console.warn('Fetch failed for:', event.request.url, error);
+                // Return nothing or a specific fallback if needed
+                return new Response('Network error occurred', { status: 408, statusText: 'Network error occurred' });
+            });
         })
     );
 });

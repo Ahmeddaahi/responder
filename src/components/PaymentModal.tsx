@@ -571,7 +571,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
 
                 <Button
                     className="w-full"
-                    disabled={!paymentMethod || paymentMethod === 'crypto' || paymentMethod === 'premierbank' || creatingCryptoOrder || creatingPremierBankOrder}
+                    disabled={!paymentMethod || paymentMethod === 'crypto' || creatingCryptoOrder}
                     onClick={() => setStep(2)}
                 >
                     Continue
