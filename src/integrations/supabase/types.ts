@@ -230,6 +230,10 @@ export type Database = {
           full_name: string | null
           id: string
           updated_at: string | null
+          onboarding_completed: boolean | null
+          company_name: string | null
+          role: string | null
+          goal: string | null
         }
         Insert: {
           created_at?: string | null
@@ -237,6 +241,10 @@ export type Database = {
           full_name?: string | null
           id: string
           updated_at?: string | null
+          onboarding_completed?: boolean | null
+          company_name?: string | null
+          role?: string | null
+          goal?: string | null
         }
         Update: {
           created_at?: string | null
@@ -244,6 +252,10 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+          onboarding_completed?: boolean | null
+          company_name?: string | null
+          role?: string | null
+          goal?: string | null
         }
         Relationships: []
       }

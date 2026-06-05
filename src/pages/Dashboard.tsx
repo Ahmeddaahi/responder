@@ -20,6 +20,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { GettingStartedWidget } from "@/components/dashboard/GettingStartedWidget";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -511,6 +512,7 @@ const Dashboard = () => {
         </Dialog>
 
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <GettingStartedWidget />
           {/* Pending Payment Banner */}
           {pendingPayments.length > 0 && (
             <div className="mb-6 sm:mb-8">

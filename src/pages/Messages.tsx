@@ -660,8 +660,19 @@ const Messages = () => {
           {/* Conversation List */}
           <ScrollArea className="flex-1">
             {filteredConversations.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>No conversations found</p>
+              <div className="p-8 text-center flex flex-col items-center justify-center h-full">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <MessageSquare className="w-8 h-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">No messages yet</h3>
+                <p className="text-sm text-muted-foreground max-w-[200px] mb-4">
+                  When customers send messages, they will appear here.
+                </p>
+                {searchQuery && (
+                  <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
+                    Clear Search
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col">
@@ -977,7 +988,7 @@ const Messages = () => {
               <div className="w-32 h-32 sm:w-48 sm:h-48 bg-muted/30 rounded-full flex items-center justify-center mb-4 sm:mb-6">
                 <Bot className="w-16 h-16 sm:w-24 sm:h-24 text-muted-foreground/20" />
               </div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-light text-foreground mb-2">ReplyReady Bot</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-light text-foreground mb-2">Resbonder AI</h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-xs sm:max-w-md px-2 sm:px-4">
                 Select a conversation from the sidebar to view message history and AI responses.
               </p>

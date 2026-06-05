@@ -32,7 +32,7 @@ const VerifyCode = lazy(() => import("./pages/VerifyCode"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmailVerificationSent = lazy(() => import("./pages/EmailVerificationSent"));
 const EmailVerificationRequired = lazy(() => import("./pages/EmailVerificationRequired"));
-
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 const AdminPromoCodes = lazy(() => import("./pages/AdminPromoCodes"));
 
@@ -79,6 +79,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/email-verification-sent" element={<EmailVerificationSent />} />
             <Route path="/email-verification-required" element={<EmailVerificationRequired />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

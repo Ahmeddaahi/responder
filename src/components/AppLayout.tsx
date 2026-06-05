@@ -28,6 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { CommandPalette } from "@/components/CommandPalette";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -326,6 +327,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           {children}
         </div>
       </SidebarInset>
+      <CommandPalette />
     </SidebarProvider>
   );
 };
