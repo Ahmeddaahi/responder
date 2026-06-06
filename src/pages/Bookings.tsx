@@ -17,7 +17,7 @@ import {
     MapPin,
     Users,
     Bed,
-    Utensils,
+    ShoppingBag,
     Stethoscope,
     ChevronDown,
     ChevronUp,
@@ -280,8 +280,8 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return "Hotel";
-            case "restaurant":
-                return "Restaurant";
+            case "retail":
+                return "Retail / Store";
             case "hospital":
                 return "Hospital / Clinic";
             case "custom":
@@ -295,8 +295,8 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return <Bed className="w-4 h-4" />;
-            case "restaurant":
-                return <Utensils className="w-4 h-4" />;
+            case "retail":
+                return <ShoppingBag className="w-4 h-4" />;
             case "hospital":
                 return <Stethoscope className="w-4 h-4" />;
             default:
@@ -355,7 +355,7 @@ const Bookings = () => {
                                 <SelectContent>
                                     <SelectItem value="all">All Types</SelectItem>
                                     <SelectItem value="hotel">Hotel</SelectItem>
-                                    <SelectItem value="restaurant">Restaurant</SelectItem>
+                                    <SelectItem value="retail">Retail / Store</SelectItem>
                                     <SelectItem value="hospital">Hospital / Clinic</SelectItem>
                                     <SelectItem value="custom">Custom</SelectItem>
                                 </SelectContent>
@@ -615,38 +615,14 @@ const Bookings = () => {
                                                         </>
                                                     )}
 
-                                                    {/* Restaurant Details */}
-                                                    {booking.booking_type === "restaurant" && (
+                                                    {/* Retail Details */}
+                                                    {booking.booking_type === "retail" && (
                                                         <>
-                                                            {booking.reservation_date && (
+                                                            {booking.custom_data?.product_inquiry && (
                                                                 <div>
-                                                                    <span className="text-muted-foreground">Date:</span>{" "}
+                                                                    <span className="text-muted-foreground">Inquiry:</span>{" "}
                                                                     <span className="font-medium">
-                                                                        {new Date(booking.reservation_date).toLocaleDateString()}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {booking.reservation_time && (
-                                                                <div>
-                                                                    <span className="text-muted-foreground">Time:</span>{" "}
-                                                                    <span className="font-medium">
-                                                                        {booking.reservation_time}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {booking.number_of_people && (
-                                                                <div>
-                                                                    <span className="text-muted-foreground">People:</span>{" "}
-                                                                    <span className="font-medium">
-                                                                        {booking.number_of_people}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {booking.table_preference && (
-                                                                <div>
-                                                                    <span className="text-muted-foreground">Table:</span>{" "}
-                                                                    <span className="font-medium capitalize">
-                                                                        {booking.table_preference}
+                                                                        {booking.custom_data.product_inquiry}
                                                                     </span>
                                                                 </div>
                                                             )}

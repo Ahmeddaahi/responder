@@ -374,7 +374,7 @@ Answer questions based ONLY on the information provided below. Extract and prese
                     context += `- ${room.name}: ${room.price} ${currency} (${room.available ? 'Available' : 'Booked'})\n`;
                 });
                 context += '\n';
-            } else if (businessType === 'restaurant' && bookingConfig.restaurant_opening_hours) {
+            } else if (businessType === 'retail' && bookingConfig.restaurant_opening_hours) {
                 context += '=== OPENING HOURS ===\n';
                 context += JSON.stringify(bookingConfig.restaurant_opening_hours, null, 2) + '\n\n';
             } else if (businessType === 'hospital' && bookingConfig.hospital_departments) {
@@ -394,8 +394,8 @@ Answer questions based ONLY on the information provided below. Extract and prese
                 if (businessType === 'hotel') {
                     serviceInstructions.push(forcedLanguage === 'somali' ? '🏨 Qabsashada qol iyo hubinta boosaska' : '🏨 Booking rooms and checking availability');
                     serviceInstructions.push(forcedLanguage === 'somali' ? '📅 Hubinta taariikhaha la heli karo' : '📅 Checking available dates');
-                } else if (businessType === 'restaurant') {
-                    serviceInstructions.push(forcedLanguage === 'somali' ? '🍽️ Qabsashada miis' : '🍽️ Booking a table');
+                } else if (businessType === 'retail') {
+                    serviceInstructions.push(forcedLanguage === 'somali' ? '🛍️ Iibsashada alaabta iyo weydiimo' : '🛍️ Browsing products and asking questions');
                 } else if (businessType === 'hospital') {
                     serviceInstructions.push(forcedLanguage === 'somali' ? '👨‍⚕️ Qabsashada takhtar' : '👨‍⚕️ Booking a doctor appointment');
                 } else {
@@ -508,11 +508,8 @@ Answer questions based ONLY on the information provided below. Extract and prese
             if (bookingConfig?.require_check_out_date) checklist.push({ en: 'Check-out Date', so: 'Taariikhda bixitaanka (Check-out)' });
             if (bookingConfig?.require_number_of_guests) checklist.push({ en: 'Number of Guests', so: 'Inta qof ee joogaysa' });
             if (bookingConfig?.require_room_type) checklist.push({ en: 'Room Type', so: 'Nooca qolka aad rabto' });
-        } else if (businessType === 'restaurant') {
-            if (bookingConfig?.require_reservation_date) checklist.push({ en: 'Reservation Date', so: 'Taariikhda qabsashada' });
-            if (bookingConfig?.require_reservation_time) checklist.push({ en: 'Reservation Time', so: 'Saacadda' });
-            if (bookingConfig?.require_number_of_people) checklist.push({ en: 'Number of People', so: 'Inta qof' });
-            if (bookingConfig?.require_table_preference) checklist.push({ en: 'Table Preference', so: 'Meesha aad dooranayso' });
+        } else if (businessType === 'retail') {
+            // Retail specific fields are handled via custom_fields or standard customer_name/phone
         } else if (businessType === 'hospital') {
             if (bookingConfig?.require_appointment_date) checklist.push({ en: 'Appointment Date', so: 'Taariikhda ballanta' });
             if (bookingConfig?.require_appointment_time) checklist.push({ en: 'Appointment Time', so: 'Saacadda ballanta' });
