@@ -15,6 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   Calendar,
   Hotel,
@@ -162,6 +172,7 @@ const Knowledge = () => {
   const [roomTypesLimit, setRoomTypesLimit] = useState<number>(10);
   const [configsCount, setConfigsCount] = useState<number>(0);
   const [existingTypes, setExistingTypes] = useState<string[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -480,6 +491,40 @@ const Knowledge = () => {
     setConfig({ ...config, field_configs: newFields });
   };
 
+  const handleDeleteConfig = async () => {
+    if (!user || !config?.id) return;
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('booking_configurations')
+        .delete()
+        .eq('id', config.id)
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      
+      setConfig(null);
+      setSelectedBusinessType(null);
+      setConfigsCount(prev => Math.max(0, prev - 1));
+      setExistingTypes(prev => prev.filter(t => t !== config.business_type));
+      setShowDeleteDialog(false);
+      setKnowledgeSaved(false);
+      
+      toast({
+        title: "Configuration Reset",
+        description: "You can now select a different business type.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to reset configuration",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 md:py-12">
@@ -567,12 +612,24 @@ const Knowledge = () => {
                 <Card className="p-4 sm:p-5 md:p-6 bg-gradient-card border-border">
                   <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessType(null)} className="gap-2 shrink-0">
-                        <ArrowLeft className="w-4 h-4" /> <span className="hidden xs:inline">Back</span>
-                      </Button>
-                      <Badge variant={config.is_active ? "default" : "outline"} className="shrink-0">
-                        {config.is_active ? "Active" : "Inactive"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessType(null)} className="gap-2 shrink-0">
+                          <ArrowLeft className="w-4 h-4" /> <span className="hidden xs:inline">Back</span>
+                        </Button>
+                        <Badge variant={config.is_active ? "default" : "outline"} className="shrink-0">
+                          {config.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      {config.id && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setShowDeleteDialog(true)}
+                          className="text-destructive border-destructive/20 hover:bg-destructive/10 shrink-0"
+                        >
+                          Change Business Type
+                        </Button>
+                      )}
                     </div>
 
                     <div className="space-y-4">
@@ -764,6 +821,27 @@ const Knowledge = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Business Type?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete your current configuration, including all settings and AI instructions. Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfig} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={loading}
+            >
+              {loading ? "Resetting..." : "Yes, change type"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
