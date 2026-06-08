@@ -280,7 +280,7 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return "Hotel";
-            case "retail":
+            case "restaurant":
                 return "Business Support";
             case "hospital":
                 return "Hospital / Clinic";
@@ -295,7 +295,7 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return <Bed className="w-4 h-4" />;
-            case "retail":
+            case "restaurant":
                 return <BriefcaseBusiness className="w-4 h-4" />;
             case "hospital":
                 return <Stethoscope className="w-4 h-4" />;

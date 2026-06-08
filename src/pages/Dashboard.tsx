@@ -607,7 +607,7 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {bookingConfig?.business_type !== 'retail' && (
+            {bookingConfig?.business_type !== 'restaurant' && (
               <>
                 <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-500/10 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-4">
@@ -694,7 +694,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Area: Recent Activity */}
             <div className="lg:col-span-2 flex flex-col gap-6">
-              {bookingConfig?.business_type === 'retail' ? (
+              {bookingConfig?.business_type === 'restaurant' ? (
                 <Card className="bg-gradient-card border-border shadow-sm flex flex-col h-full">
                   <div className="p-6 border-b border-border/50 flex items-center justify-between">
                     <div className="flex items-center gap-3">
