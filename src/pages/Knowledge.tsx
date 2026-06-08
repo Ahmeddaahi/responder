@@ -33,7 +33,7 @@ import RoomTypesEditor, { RoomType } from "@/components/knowledge/RoomTypesEdito
 import MedicalTemplateEditor, { MedicalConfig } from "@/components/knowledge/MedicalTemplateEditor";
 import DoctorSlotsManager from "@/components/knowledge/DoctorSlotsManager";
 
-type BusinessType = "hotel" | "business" | "hospital" | "custom";
+type BusinessType = "hotel" | "retail" | "hospital" | "custom";
 
 interface BookingConfiguration {
   id?: string;
@@ -130,7 +130,7 @@ const DEFAULT_FIELDS_MAP: Record<string, BookingField[]> = {
     { id: 'number_of_guests', label: 'Number of Guests', required: true, type: 'number', is_core: true },
     { id: 'room_type', label: 'Room Type', required: false, type: 'text', is_core: true },
   ],
-  business: [
+  retail: [
     { id: 'customer_name', label: 'Customer Name', required: true, type: 'text', is_core: true },
     { id: 'customer_phone', label: 'Phone Number', required: true, type: 'text', is_core: true },
     { id: 'customer_query', label: 'How can we help you?', required: false, type: 'text', is_core: false },
@@ -516,15 +516,15 @@ const Knowledge = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectBusinessType("business")}
-                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("business")}
+                      onClick={() => handleSelectBusinessType("retail")}
+                      disabled={plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("retail")}
                       className="disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
                       <Card className="p-4 hover:shadow-lg transition-shadow border-border cursor-pointer text-left h-full group-disabled:pointer-events-none">
                         <BriefcaseBusiness className="w-8 h-8 text-accent mb-3" />
                         <h4 className="font-semibold">Business Support</h4>
                         <p className="text-xs text-muted-foreground mt-1">Customer support & Q&A</p>
-                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("business") && (
+                        {plan !== 'enterprise' && configsCount >= 1 && !existingTypes.includes("retail") && (
                           <div className="mt-2 text-[10px] text-amber-600 font-medium whitespace-nowrap">Business Plan Required</div>
                         )}
                       </Card>
@@ -688,9 +688,9 @@ const Knowledge = () => {
                         />
                       </div>
 
-                      {(selectedBusinessType === "hotel" || selectedBusinessType === "business" || selectedBusinessType === "hospital") && (
+                      {(selectedBusinessType === "hotel" || selectedBusinessType === "retail" || selectedBusinessType === "hospital") && (
                         <div className="bg-muted/30 p-4 rounded-lg border space-y-4 mt-4">
-                          <h4 className="font-semibold text-sm capitalize">{selectedBusinessType === "business" ? "Business" : selectedBusinessType} Template Settings</h4>
+                          <h4 className="font-semibold text-sm capitalize">{selectedBusinessType === "retail" ? "Business" : selectedBusinessType} Template Settings</h4>
 
                           {selectedBusinessType === "hotel" && (
                             <div className="space-y-2">
@@ -704,7 +704,7 @@ const Knowledge = () => {
                             </div>
                           )}
 
-                          {selectedBusinessType === "business" && (
+                          {selectedBusinessType === "retail" && (
                             <div className="space-y-2">
                               <Label className="text-xs">Business Hours</Label>
                               <OpeningHoursEditor
