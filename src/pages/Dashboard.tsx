@@ -87,6 +87,14 @@ interface Booking {
   created_at: string | null;
 }
 
+interface MessageLog {
+  id: string;
+  customer_id: string;
+  message_text: string;
+  platform: string;
+  created_at: string;
+}
+
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,6 +104,7 @@ const Dashboard = () => {
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
   const [bookingConfig, setBookingConfig] = useState<BookingConfigSummary | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [recentInquiries, setRecentInquiries] = useState<MessageLog[]>([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [weeklyBookingsCount, setWeeklyBookingsCount] = useState(0);
   const [conversionRate, setConversionRate] = useState(0);
@@ -130,9 +139,28 @@ const Dashboard = () => {
       loadPendingPayments(),
       loadBookingConfig(),
       loadRecentBookings(),
+      loadRecentInquiries(),
       loadMetrics(),
     ]);
     setIsRefreshing(false);
+  };
+
+  const loadRecentInquiries = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("message_logs")
+        .select("id, customer_id, message_text, platform, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (!error && data) {
+        setRecentInquiries(data as MessageLog[]);
+      }
+    } catch (error: any) {
+      console.error("Error loading recent inquiries:", error);
+    }
   };
 
   const loadMetrics = async () => {
@@ -579,31 +607,35 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-500/10 hover:shadow-md transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Clock className="w-5 h-5 text-purple-600" />
-                </div>
-                <Badge variant="outline" className="text-[10px] font-normal border-purple-200">Last 7 Days</Badge>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">{weeklyBookingsCount}</h3>
-                <p className="text-xs text-muted-foreground mt-1">Bookings this week</p>
-              </div>
-            </Card>
+            {bookingConfig?.business_type !== 'business' && (
+              <>
+                <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-500/10 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-purple-500/10 rounded-lg">
+                      <Clock className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-normal border-purple-200">Last 7 Days</Badge>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">{weeklyBookingsCount}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Bookings this week</p>
+                  </div>
+                </Card>
 
-            <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-orange-500/5 to-yellow-500/5 border-orange-500/10 hover:shadow-md transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-orange-500/10 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
-                </div>
-                <Badge variant="outline" className="text-[10px] font-normal border-orange-200">Conversion Rate</Badge>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">{conversionRate}%</h3>
-                <p className="text-xs text-muted-foreground mt-1">Customers that booked</p>
-              </div>
-            </Card>
+                <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-orange-500/5 to-yellow-500/5 border-orange-500/10 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-orange-500/10 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-normal border-orange-200">Conversion Rate</Badge>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">{conversionRate}%</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Customers that booked</p>
+                  </div>
+                </Card>
+              </>
+            )}
 
             <Card className="p-5 flex flex-col justify-between bg-gradient-to-br from-emerald-500/5 to-green-500/5 border-emerald-500/10 hover:shadow-md transition-all sm:col-span-2 lg:col-span-3">
               <div className="flex justify-between items-start mb-4">
@@ -662,13 +694,82 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Area: Recent Activity */}
             <div className="lg:col-span-2 flex flex-col gap-6">
-              {/* Recent Bookings Card */}
-              <Card className="bg-gradient-card border-border shadow-sm flex flex-col h-full">
-                <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Calendar className="w-5 h-5 text-primary" />
+              {bookingConfig?.business_type === 'business' ? (
+                <Card className="bg-gradient-card border-border shadow-sm flex flex-col h-full">
+                  <div className="p-6 border-b border-border/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <MessageSquare className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold">Recent Inquiries</h2>
+                        <p className="text-xs text-muted-foreground">Latest customer messages</p>
+                      </div>
                     </div>
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/messages")} className="text-xs">
+                      View All <ArrowRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden">
+                    {recentInquiries.length === 0 ? (
+                      <div className="p-12 text-center flex flex-col items-center gap-4">
+                        <div className="p-4 bg-muted rounded-full">
+                          <MessageSquare className="w-8 h-8 text-muted-foreground/40" />
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground font-medium">No messages yet</p>
+                          <p className="text-xs text-muted-foreground mt-1 max-w-[200px] mx-auto">
+                            Once customers start sending messages, they'll appear here.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+                              <th className="text-left font-medium py-3 px-6">Customer</th>
+                              <th className="text-left font-medium py-3 px-6">Message</th>
+                              <th className="text-left font-medium py-3 px-6">Platform</th>
+                              <th className="text-left font-medium py-3 px-6 text-right">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/50">
+                            {recentInquiries.map((inquiry) => (
+                              <tr
+                                key={inquiry.id}
+                                className="hover:bg-muted/30 transition-colors group cursor-pointer"
+                                onClick={() => navigate(`/messages?chat=${inquiry.customer_id}`)}
+                              >
+                                <td className="py-4 px-6 font-semibold">{inquiry.customer_id}</td>
+                                <td className="py-4 px-6 truncate max-w-[200px] text-xs" title={inquiry.message_text}>
+                                  {inquiry.message_text}
+                                </td>
+                                <td className="py-4 px-6">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${inquiry.platform === 'whatsapp' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                                    <span className="text-xs capitalize">{inquiry.platform}</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6 text-right text-xs text-muted-foreground">
+                                  {new Date(inquiry.created_at).toLocaleDateString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ) : (
+                <Card className="bg-gradient-card border-border shadow-sm flex flex-col h-full">
+                  <div className="p-6 border-b border-border/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Calendar className="w-5 h-5 text-primary" />
+                      </div>
                     <div>
                       <h2 className="text-lg font-bold">Recent Bookings</h2>
                       <p className="text-xs text-muted-foreground">Latest customer reservations</p>
@@ -770,6 +871,7 @@ const Dashboard = () => {
                   )}
                 </div>
               </Card>
+              )}
             </div>
 
             {/* Sidebar Area: Quick Setup & Status */}

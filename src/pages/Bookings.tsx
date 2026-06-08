@@ -17,7 +17,7 @@ import {
     MapPin,
     Users,
     Bed,
-    ShoppingBag,
+    BriefcaseBusiness,
     Stethoscope,
     ChevronDown,
     ChevronUp,
@@ -280,8 +280,8 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return "Hotel";
-            case "retail":
-                return "Retail / Store";
+            case "business":
+                return "Business Support";
             case "hospital":
                 return "Hospital / Clinic";
             case "custom":
@@ -295,8 +295,8 @@ const Bookings = () => {
         switch (type) {
             case "hotel":
                 return <Bed className="w-4 h-4" />;
-            case "retail":
-                return <ShoppingBag className="w-4 h-4" />;
+            case "business":
+                return <BriefcaseBusiness className="w-4 h-4" />;
             case "hospital":
                 return <Stethoscope className="w-4 h-4" />;
             default:
