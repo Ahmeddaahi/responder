@@ -598,8 +598,8 @@ const Messages = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="h-[calc(100dvh-5rem)] md:h-[calc(100vh-3.5rem)] flex flex-col md:flex-row gap-4 p-4">
-          <div className="w-full md:w-[350px] lg:w-[400px]">
+        <div className="h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-3.5rem)] flex flex-col md:flex-row gap-4 p-4 md:rounded-lg border-y md:border border-border shadow-sm">
+          <div className="flex-1 md:flex-none w-full md:w-[350px] lg:w-[400px]">
             <TableSkeleton />
           </div>
           <div className="hidden md:flex flex-1 border rounded-lg p-6">
@@ -619,9 +619,9 @@ const Messages = () => {
 
   return (
     <AppLayout>
-      <div className="h-[calc(100dvh-5rem)] md:h-[calc(100vh-3.5rem)] flex flex-col md:flex-row bg-[hsl(var(--whatsapp-chat-bg))] overflow-hidden rounded-lg border border-border shadow-sm">
+      <div className="h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-3.5rem)] flex flex-col md:flex-row bg-[hsl(var(--whatsapp-chat-bg))] overflow-hidden md:rounded-lg border-y md:border border-border shadow-sm">
         {/* Sidebar - User List */}
-        <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-[350px] lg:w-[400px] flex-col border-r border-border bg-[hsl(var(--whatsapp-sidebar))] min-h-0`}>
+        <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} flex-1 md:flex-none w-full md:w-[350px] lg:w-[400px] flex-col border-r border-border bg-[hsl(var(--whatsapp-sidebar))] min-h-0`}>
           {/* Sidebar Header */}
           <div className="p-3 sm:p-4 border-b border-border flex justify-between items-center bg-[hsl(var(--whatsapp-sidebar))]">
             <div className="flex items-center gap-2">
