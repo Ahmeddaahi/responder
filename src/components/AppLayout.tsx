@@ -165,11 +165,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       path: "/knowledge",
     },
     {
-      title: "Business Data",
-      icon: Database,
-      path: "/business-data",
-    },
-    {
       title: "Bookings",
       icon: Calendar,
       path: "/bookings",

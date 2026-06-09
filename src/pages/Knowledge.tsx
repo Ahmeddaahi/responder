@@ -42,6 +42,7 @@ import BookingFlowEditor, { BookingField } from "@/components/knowledge/BookingF
 import RoomTypesEditor, { RoomType } from "@/components/knowledge/RoomTypesEditor";
 import MedicalTemplateEditor, { MedicalConfig } from "@/components/knowledge/MedicalTemplateEditor";
 import DoctorSlotsManager from "@/components/knowledge/DoctorSlotsManager";
+import BusinessDataEditor from "@/components/knowledge/BusinessDataEditor";
 
 type BusinessType = "hotel" | "restaurant" | "hospital" | "custom";
 
@@ -762,12 +763,15 @@ const Knowledge = () => {
                           )}
 
                           {selectedBusinessType === "restaurant" && (
-                            <div className="space-y-2">
-                              <Label className="text-xs">Business Hours</Label>
-                              <OpeningHoursEditor
-                                value={config.restaurant_opening_hours}
-                                onChange={(val) => setConfig({ ...config, restaurant_opening_hours: val })}
-                              />
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label className="text-xs">Business Hours</Label>
+                                <OpeningHoursEditor
+                                  value={config.restaurant_opening_hours}
+                                  onChange={(val) => setConfig({ ...config, restaurant_opening_hours: val })}
+                                />
+                              </div>
+                              <BusinessDataEditor userId={user?.id || ""} />
                             </div>
                           )}
 

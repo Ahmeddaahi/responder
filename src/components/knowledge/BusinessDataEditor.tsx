@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +18,11 @@ import {
 import { Download, Upload, Plus, Trash2 } from "lucide-react";
 import Papa from "papaparse";
 
-export default function BusinessData() {
+export default function BusinessDataEditor({ userId }: { userId: string }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [kbEntries, setKbEntries] = useState<any[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // New KB entry state
@@ -32,17 +30,11 @@ export default function BusinessData() {
   const [newKbContent, setNewKbContent] = useState("");
 
   useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      setUserId(session.user.id);
-      fetchProducts(session.user.id);
-      fetchKbEntries(session.user.id);
+    if (userId) {
+      fetchProducts(userId);
+      fetchKbEntries(userId);
     }
-  };
+  }, [userId]);
 
   const fetchProducts = async (uid: string) => {
     const { data, error } = await supabase
@@ -192,15 +184,15 @@ export default function BusinessData() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Business Data</h1>
-          <p className="text-muted-foreground mb-8">
-            Manage your products inventory and general business knowledge.
-          </p>
+    <div className="w-full mt-8">
+      <div className="mb-6 border-b pb-4">
+        <h2 className="text-2xl font-bold mb-2">Business Data</h2>
+        <p className="text-muted-foreground">
+          Manage your products inventory and general business knowledge.
+        </p>
+      </div>
 
-          <Tabs defaultValue="products" className="w-full">
+      <Tabs defaultValue="products" className="w-full">
             <TabsList className="mb-6 grid w-full grid-cols-2 lg:w-[400px]">
               <TabsTrigger value="products">Products Inventory</TabsTrigger>
               <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
@@ -331,9 +323,7 @@ export default function BusinessData() {
                 </Card>
               </div>
             </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </AppLayout>
+      </Tabs>
+    </div>
   );
 }
