@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bot, Settings, MessageSquare, LogOut, LayoutDashboard, Shield, HelpCircle, BarChart3, Calendar, Zap } from "lucide-react";
+import { Bot, Settings, MessageSquare, LogOut, LayoutDashboard, Shield, HelpCircle, BarChart3, Calendar, Zap, Database } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -163,6 +163,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       title: "Booking Config",
       icon: Bot,
       path: "/knowledge",
+    },
+    {
+      title: "Business Data",
+      icon: Database,
+      path: "/business-data",
     },
     {
       title: "Bookings",
