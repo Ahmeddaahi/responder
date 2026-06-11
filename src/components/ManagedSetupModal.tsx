@@ -37,7 +37,7 @@ const ManagedSetupModal = ({ isOpen, onClose, userId, onSuccess }: ManagedSetupM
 
     const paymentDetails = {
         ebirr: { number: "0995817222", name: "Ahmed Bashir Ahmed", amount: "200 ETB" },
-        zaad: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed", amount: "$1" },
+        zaad: { number: "+252638194868", name: "Axmed Bashir Axmed", amount: "$1" },
         edahab: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed", amount: "$1" },
         crypto: { number: "", name: "", amount: "$1" },
     };

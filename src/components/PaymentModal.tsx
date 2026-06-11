@@ -583,7 +583,7 @@ const PaymentModal = ({ isOpen, onClose, planName, amount, billingCycle = 'month
     const renderStep2 = () => {
         const paymentDetails = {
             ebirr: { number: "0995817222", name: "Ahmed Bashir Ahmed" },
-            zaad: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
+            zaad: { number: "+252638194868", name: "Axmed Bashir Axmed" },
             edahab: { number: "+252 63 3983250", name: "Cabdixakiin Bashir Ahmed" },
             crypto: { number: "", name: "" }
         };
